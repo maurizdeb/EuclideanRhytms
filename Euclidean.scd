@@ -1,3 +1,6 @@
+/*--------------------------GLOBAL SETTINGS--------------------------------*/
+
+
 /*-------------------------SOUND SOURCES-----------------------------------*/
 (
 //-KICK
@@ -30,16 +33,29 @@ SynthDef(\cowbell, { arg amp=0.3, t_gate=0, fund_freq=540, pan=0.0;
 
 /*----------------------------GUI-----------------------------------------*/
 (
-var w = Window("Kick", Rect(100,100,250,400));
+var w = Window("Kick", Rect(100,100,550,400));
 //backgound image....not working
 //var a = Image.new(SCDoc.helpSourceDir +/+ "GUI Background.jpg");
 //w.view.backgroundImage_(a);
 
+//TEMPO GUI
+var tempoKnob,
 //KICK GUI
-var kickPlayBtn, decayKnob, punchKnob, km,
+kickPlayBtn, decayKnob, punchKnob, km,
 //COWBELL GUI
 cowPlayBtn, cow_freq_knob, cow;
 
+/*------------------------------TEMPO-------------------------------------*/
+g = ControlSpec.new(40, 240, \linear, 1);
+tempoKnob = EZKnob(w, Rect(400, 10, 100, 100),"bpm", g, initval:120);
+
+tempoKnob.action_({
+	var tmp = tempoKnob.value;
+	TempoClock.default.tempo_( tmp / 60);
+	//tmp.postln;
+});
+
+/*------------------------------END TEMPO---------------------------------*/
 /*-----------------------------KICK---------------------------------------*/
 km = Synth("kick");
 
