@@ -30,22 +30,22 @@ SynthDef(\cowbell, { arg amp=0.3, t_gate=0, fund_freq=540, pan=0.0;
 ~cow.set(\t_gate, 1);
 
 x = Synth.new(\kick);
-x.set(\t_gate,1);
+x.set(\t_gate,0);
 x.free;
 
 TempoClock.default.tempo.postln;
-TempoClock.default.tempo = 200/60
+TempoClock.default.tempo = 80/60;
 s.freeAll;
 
 (
-a = Pseq(#[1,0,0,0,1,0,0,0], inf).asStream;
+a = Pseq(#[1,1,1,1,1,1,1,1,1], inf).asStream;
 r = Routine({
 	loop {
 		x.set(\t_gate, a.next);
-		0.2.wait;
+		1.wait; //da capire la dur
 	}
 });
-)
+) //Routine del kick
 
 (
 b = Pseq(#[1,0,1,0,0,1,0,1], inf).asStream;
@@ -55,7 +55,7 @@ j = Routine({
 		0.2.wait;
 	}
 });
-)
+) //routine del cowbell
 
 
 
@@ -71,11 +71,21 @@ j.free;
 s.freeAll;
 s.plotTree;
 
+(
+p = Pbind(
+	\type, \set,
+	\id, x,
+	//\instrument, \kick,
+	\args, #[\t_gate],
+    \t_gate, Pseq([1, 0, 0, 0, 1, 0, 0, 0], inf),
+);
+)
 
+p.play/*(quant:1/16)*/;
+p.free;
+p.stop;
 
-
-
-
+x.free;
 
 
 
