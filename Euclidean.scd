@@ -31,9 +31,34 @@ SynthDef(\cowbell, { arg amp=0.3, t_gate=0, fund_freq=540, pan=0.0;
 }).add;
 )
 
+/*----------------------------SEQUENCES-----------------------------------*/
+(
+~kick = Synth.("kick");
+~cymbal = Synth("cowbell");
+
+~kickSeq = Pbind(
+	\type, \set,
+	\id, ~kick,
+	\args, #[\t_gate],
+	\t_gate, Pseq([1, 0, 0, 0], inf)
+
+);
+
+~cymbalSeq = Pbind(
+	\type, \set,
+	\id, ~cymbal,
+	\args, #[\t_gate],
+	\t_gate, Pseq([0, 0, 1, 0], inf)
+
+);
+)
+
+
+/*----------------------------END SEQUENCES-------------------------------*/
+
 /*----------------------------GUI-----------------------------------------*/
 (
-var w = Window("Kick", Rect(100,100,550,400));
+var w = Window("Euclidean AlgoRhythmic Sequencer", Rect(100,100,550,400));
 //backgound image....not working
 //var a = Image.new(SCDoc.helpSourceDir +/+ "GUI Background.jpg");
 //w.view.backgroundImage_(a);
@@ -41,7 +66,7 @@ var w = Window("Kick", Rect(100,100,550,400));
 //TEMPO GUI
 var tempoKnob,
 //KICK GUI
-kickPlayBtn, decayKnob, punchKnob, km,
+kickPlayBtn, decayKnob, punchKnob,
 //COWBELL GUI
 cowPlayBtn, cow_freq_knob, cow;
 
@@ -57,7 +82,6 @@ tempoKnob.action_({
 
 /*------------------------------END TEMPO---------------------------------*/
 /*-----------------------------KICK---------------------------------------*/
-km = Synth("kick");
 
 /* ---- btnPlay -----*/
 kickPlayBtn = Button(w, Rect(20, 160, 210, 30));
@@ -65,25 +89,24 @@ kickPlayBtn.string = "play";
 
 kickPlayBtn.action_({ arg butt;
 	butt.value.asBoolean.not.postln;
-	km.set(\t_gate, 1);
+	~kickSeq.play();   //SET ON COMMON GRID
 });
 /* ---- Kick_Decay_Knob -----*/
 g = ControlSpec.new(0, 1, \lin);
 decayKnob = EZKnob(w,Rect(10,10,100,100),"decay",g,initVal:0.5);
 
 decayKnob.action_({
-	km.set(\decay,decayKnob.value);
+	~kick.set(\decay,decayKnob.value);
 });
 /* ---- Kick_Punch_Knob -----*/
 g = ControlSpec.new(0, 1, \lin);
 punchKnob = EZKnob(w,Rect(130,10,100,100),"punch",g,initVal:0.5);
 
 punchKnob.action_({
-	km.set(\punch,punchKnob.value);
+	~kick.set(\punch,punchKnob.value);
 });
 /*--------------------------END KICK---------------------------------------*/
 /*--------------------------COWBELL----------------------------------------*/
-cow = Synth("cowbell");
 
 /* ---- btnPlay -----*/
 cowPlayBtn = Button(w, Rect(20, 355, 210, 30));
@@ -91,20 +114,20 @@ cowPlayBtn.string = "play";
 
 cowPlayBtn.action_({ arg butt;
 	butt.value.asBoolean.not.postln;
-	cow.set(\t_gate, 1);
+	~cymbalSeq.play();   //SET ON COMMON GRID
 });
 /* ---- Freq_Decay_Knob -----*/
 g = ControlSpec.new(0, 1, \lin);
 cow_freq_knob = EZKnob(w,Rect(10,240,100,100),"tone", g,initVal:0.5);
 
 cow_freq_knob.action_({
-	cow.set(\fund_freq,240+(cow_freq_knob.value*700));
+	~cymbal.set(\fund_freq,240+(cow_freq_knob.value*700));
 });
 
 /*--------------------------END COWBELL------------------------------------*/
 w.front;
 
-w.onClose={km.free;cow.free;};
+w.onClose={s.freeAll;};
 )
 
 
