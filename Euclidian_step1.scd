@@ -1,12 +1,15 @@
 (
+s.waitForBoot{
+
 SynthDef("kick", {arg freq = 60, t_gate = 0, decay = 1, punch = 0.5;
 	var kick, ampEnv, impact;
-	ampEnv = EnvGen.ar(Env.perc(0.01, decay, 2),	gate:t_gate);
+	ampEnv = EnvGen.ar(Env.perc(0.01, decay, 2),	gate:t_gate, doneAction:0);
 	impact = EnvGen.kr(Env.perc(0, 0.4, punch*5), gate:t_gate);
 	kick = SinOsc.ar(freq*impact, 0, ampEnv);
 	kick = LPF.ar(kick, 300);
 	Out.ar(0, [kick, kick]);
 }).add;
+}
 )
 
 (
@@ -30,7 +33,7 @@ SynthDef(\cowbell, { arg amp=0.3, t_gate=0, fund_freq=540, pan=0.0;
 ~cow.set(\t_gate, 1);
 
 x = Synth.new(\kick);
-x.set(\t_gate,0);
+x.set(\t_gate,1);
 x.free;
 
 TempoClock.default.tempo.postln;
@@ -71,11 +74,23 @@ j.free;
 s.freeAll;
 s.plotTree;
 
+c = TempoClock(60/60);
+Pdef(\kick).play(c,quant:4);
+(
+Pdef(\kick, Pbind(
+	\type, \set,
+	\id, x,
+	\instrument, \kick,
+	\args, #[\t_gate],
+    \t_gate, Pseq([1, 0, 0, 0, 0, 0, 0, 0], inf),
+)).stop;
+)
+
 (
 p = Pbind(
 	\type, \set,
 	\id, x,
-	//\instrument, \kick,
+	\instrument, \kick,
 	\args, #[\t_gate],
     \t_gate, Pseq([1, 0, 0, 0, 1, 0, 0, 0], inf),
 );
@@ -87,61 +102,4 @@ p.stop;
 
 x.free;
 
-
-
-
-
-(
-SynthDef(\help_sinegrain,
-    { arg out=0, freq=440, sustain=0.05;
-        var env;
-        env = EnvGen.kr(Env.perc(0.01, sustain, 0.2), doneAction: Done.freeSelf);
-        Out.ar(out, SinOsc.ar(freq, 0, env))
-    }).add;
-)
-
-(
-a = Pseq(#[60, 61, 63, 65, 72], inf).asStream;
-Routine({
-    loop({
-        Synth(\help_sinegrain, [\freq, a.next.midicps]);
-		a.next.midicps.postln;
-        0.2.wait;
-    })
-}).play;
-)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-(
-r = Routine { arg inval;
-    loop {
-        // thisThread refers to the routine.
-        postf("beats: % seconds: % time: % \n",
-            thisThread.beats, thisThread.seconds, Main.elapsedTime
-        );
-        1.0.yield;
-
-    }
-}.play;
-)
-
-r.stop;
-r.beats;
-r.seconds;
-r.clock;
+Pdef.removeAll;
