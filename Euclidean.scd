@@ -7,8 +7,8 @@
 SynthDef("kick", {arg amp=0.3, freq=60, t_gate=0, decay=1, punch=0.5, pan=0.0;
 	var kick, ampEnv, impact;
 
-	ampEnv = EnvGen.ar(Env.adsr(0.01, decay, 0.8, decay/2),	gate:t_gate);
-	impact = EnvGen.kr(Env.perc(0, 0.4, punch*5), gate:t_gate);
+	ampEnv = EnvGen.ar(Env.adsr(0.01, 3, 0.5, decay),	gate:t_gate);
+	impact = EnvGen.kr(Env.perc(0, decay, punch*5), gate:t_gate);
 	kick = SinOsc.ar(freq*impact);
 	kick = Mix(kick * ampEnv);
 	kick = LPF.ar(kick, 300);
@@ -52,33 +52,97 @@ SynthDef(\snare, {arg t_gate=0, decay=0.1, amp=0.3, pan=0.0;
 ~cowbell = Synth("cowbell");
 ~snare = Synth("snare");
 
-~kickSeq = Pbind(
-	\type, \set,
-	\id, ~kick,
-	\args, #[\t_gate],
-	\t_gate, Pseq([1, 0, 0, 0, 1, 0, 0, 0], inf)
+~kickSeq = Pdef(
+	\kickSeq,
+	Pbind(
+		\type, \set,
+		\id, ~kick,
+		\instument, \kick,
+		\args, #[\t_gate],
+		\t_gate, Pseq([1, 0, 0, 0, 1, 0, 0, 0], inf),
+)).stop;
 
-);
+~snareSeq = Pdef(
+	\snareSeq,
+	Pbind(
+		\type, \set,
+		\id, ~snare,
+		\instument, \snare,
+		\args, #[\t_gate],
+		\t_gate, Pseq([0, 0, 0, 0, 1, 0, 0, 0], inf),
+)).stop;
 
-~snareSeq = Pbind(
-	\type, \set,
-	\id, ~snare,
-	\args, #[\t_gate],
-	\t_gate, Pseq([0, 0, 0, 0, 1, 0, 0, 0], inf)
 
-);
+~cowbellSeq = Pdef(
+	\cowbellSeq,
+	Pbind(
+		\type, \set,
+		\id, ~cowbell,
+		\instument, \snare,
+		\args, #[\t_gate],
+		\t_gate, Pseq([0, 0, 1, 0, 0, 0, 1, 0], inf),
+)).stop;
 
-~cowbellSeq = Pbind(
-	\type, \set,
-	\id, ~cowbell,
-	\args, #[\t_gate],
-	\t_gate, Pseq([0, 0, 1, 0], inf)
-
-);
 )
 
-
 /*----------------------------END SEQUENCES-------------------------------*/
+
+/*----------------------------BJORKLUND ALGORITHM-------------------------*/
+
+//If hits < length/2 ...
+//else we need to swap 0 and ones...
+//obvious solution must be computed differently
+
+//testFunc.while( bodyFunc );
+
+compute_rhythm = { arg num_hits, length;
+
+	var divisor = length - num_hits;
+	reminder[0] = num_hits;    //transform in supercollider code
+	var level = 0;
+
+	//riprendi da qua
+
+};
+
+//---------------------CODICE C DA CONVERTIRE
+void function compute_bitmap (int num_slots, int num_pulses)
+{
+/*---------------------
+* First, compute the count and remainder arrays
+*/
+divisor = num_slots – num_pulses;
+remainder[0] = num_pulses;
+level = 0;
+do {
+count[level] = divisor / remainder[level];
+remainder[level+1] = mod(divisor, remainder[level]);
+divisor = remainder[level];
+level = level + 1;
+while (remainder[level] > 1);
+count[level] = divisor;
+/*---------------------
+* Now build the bitmap string
+*/
+build_string (level);
+}
+
+	void function build_string (int level)
+{
+if (level == -1)
+append a “0” to the end of the bitmap;
+else if (level == -2)
+append a “1” to the end of the bitmap;
+else {
+for (i=0; i < count[level]; i++)
+build_string (level-1);
+if (remainder[level] != 0)
+build_string (level-2);
+}/*end else*/
+}
+//-----------------FINE CODICE C DA CONVERTIRE
+
+/*----------------------------END BJORKLUND ALGORITHM---------------------*/
 
 /*----------------------------GUI-----------------------------------------*/
 (
@@ -115,12 +179,12 @@ kickPlayBtn.string = "kik play";
 
 kickPlayBtn.action_({ arg butt;
 	butt.value.asBoolean.not.postln;
-	~kickSeq.play(quant:1/16);
+	~kickSeq.play(quant:1);
 
 });
 /* ---- Kick_Decay_Knob -----*/
 g = ControlSpec.new(0, 3, \lin);
-decayKnob = EZKnob(w,Rect(10,10,100,100),"decay",g,initVal:50);
+decayKnob = EZKnob(w,Rect(10,10,100,100),"decay",g,initVal:1.5);
 
 decayKnob.action_({
 	~kick.set(\decay,decayKnob.value);
@@ -141,8 +205,7 @@ snarePlayBtn.string = "snr play";
 
 snarePlayBtn.action_({ arg butt;
 	butt.value.asBoolean.not.postln;
-	~snareSeq.play(quant:1/16);
-
+	~snareSeq.play(quant:1);
 });
 
 /* ---- Snare_Decay_Knob -----*/
@@ -162,8 +225,9 @@ cowPlayBtn.string = "cwb play";
 
 cowPlayBtn.action_({ arg butt;
 	butt.value.asBoolean.not.postln;
-	~cowbellSeq.play(quant:1/16);
+	~cowbellSeq.play(quant:1);
 });
+
 /* ---- Freq_Decay_Knob -----*/
 g = ControlSpec.new(0, 1, \lin);
 cow_freq_knob = EZKnob(w,Rect(10,240,100,100),"tone", g,initVal:0.5);
