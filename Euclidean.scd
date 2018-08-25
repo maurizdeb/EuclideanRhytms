@@ -102,9 +102,9 @@ SynthDef(\snare, {arg t_gate=0, decay=0.1, amp=0.3, pan=0.0;
 	seq = Array.new;
 
 	if(k >= n, {
-		result = Array.fill(n, {0});
+		seq = Array.fill(n, {0});
 		if(k == n, {
-			result = Array.fill(n, {1});
+			seq = Array.fill(n, {1});
 		});
 	},{
 		if(k > (n/2), {
@@ -136,14 +136,14 @@ SynthDef(\snare, {arg t_gate=0, decay=0.1, amp=0.3, pan=0.0;
 		count.postln;
 
 		if(flag == 0, {
-			result = ~build_string.value(seq, level, count, remainder);
+			seq = ~build_string.value(seq, level, count, remainder);
 		});
 		if(flag == 1, {
-			result = ~build_string_inverted.value(seq, level, count, remainder);
+			seq = ~build_string_inverted.value(seq, level, count, remainder);
 		});
-		result.postln;
-		result.reverse;
+		seq.postln;
 	});
+	seq.reverse;
 };
 )
 
@@ -191,7 +191,7 @@ SynthDef(\snare, {arg t_gate=0, decay=0.1, amp=0.3, pan=0.0;
 }
 )
 
-(~compute_rhythm.value(10,8);)
+(~compute_rhythm.value(2,8);)
 
 /*----------------------------END BJORKLUND ALGORITHM---------------------*/
 
