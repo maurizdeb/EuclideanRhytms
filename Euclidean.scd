@@ -10,7 +10,7 @@ SynthDef("kick", {arg amp=0.4, freq=60, t_gate=0, decay=1, punch=0.5, pan=0.0;
 	ampEnv = EnvGen.kr(Env.adsr(0.01, 3, 0.5, decay),	gate:t_gate);
 	impact = EnvGen.kr(Env.perc(0, decay, punch*5), gate:t_gate);
 	kick = SinOsc.ar(freq*impact);
-	kick = Mix(kick * ampEnv);
+	kick = kick * ampEnv;
 	kick = LPF.ar(kick, 300);
 
 	Out.ar(0, Pan2.ar( kick, pan, amp ));
@@ -46,48 +46,10 @@ SynthDef(\snare, {arg t_gate=0, tone=1,  decay=0.1, amp=0.3, pan=0.0;
 }).add;
 
 )
-/*----------------------------SEQUENCES-----------------------------------*/
-(
-~kick = Synth("kick");
-~cowbell = Synth("cowbell");
-~snare = Synth("snare");
 
-~kickSeq = Pdef(
-	\kickSeq,
-	Pbind(
-		\type, \set,
-		\id, ~kick,
-		\instument, \kick,
-		\args, #[\t_gate],
-		\t_gate, Pseq([1, 0, 0, 0, 1, 0, 0, 0], inf),
-));
-
-~snareSeq = Pdef(
-	\snareSeq,
-	Pbind(
-		\type, \set,
-		\id, ~snare,
-		\instument, \snare,
-		\args, #[\t_gate],
-		\t_gate, Pseq([0, 0, 0, 0, 1, 0, 0, 0], inf),
-));
-
-
-~cowbellSeq = Pdef(
-	\cowbellSeq,
-	Pbind(
-		\type, \set,
-		\id, ~cowbell,
-		\instument, \snare,
-		\args, #[\t_gate],
-		\t_gate, Pseq([1, 1, 1, 0, 0, 0, 1, 0], inf),
-));
-
-)
-
-/*----------------------------END SEQUENCES-------------------------------*/
-
+/*----------------------------END SOUND SOURCES---------------------------*/
 /*----------------------------BJORKLUND ALGORITHM-------------------------*/
+
 (
 ~compute_rhythm = {
 
@@ -101,7 +63,7 @@ SynthDef(\snare, {arg t_gate=0, tone=1,  decay=0.1, amp=0.3, pan=0.0;
 	count = Array.new;
 	seq = Array.new;
 
-	if(k >= n, {
+	if((k >= n) || (k == 0), {
 		seq = Array.fill(n, {0});
 		if(k == n, {
 			seq = Array.fill(n, {1});
@@ -166,9 +128,53 @@ SynthDef(\snare, {arg t_gate=0, tone=1,  decay=0.1, amp=0.3, pan=0.0;
 }
 )
 
-(~compute_rhythm.value(8,9);)
+(~compute_rhythm.value(4,13);)
 
 /*----------------------------END BJORKLUND ALGORITHM---------------------*/
+/*----------------------------SEQUENCES-----------------------------------*/
+(
+~kick = Synth("kick");
+~cowbell = Synth("cowbell");
+~snare = Synth("snare");
+
+~kickPattern = ~compute_rhythm.value(2,8);
+~snarePattern = ~compute_rhythm.value(5,13);
+~cowbellPattern = ~compute_rhythm.value(2,7);
+
+~kickSeq = Pdef(
+	\kickSeq,
+	Pbind(
+		\type, \set,
+		\id, ~kick,
+		\instument, \kick,
+		\args, #[\t_gate],
+		\t_gate, Pseq(~kickPattern, inf),
+));
+
+~snareSeq = Pdef(
+	\snareSeq,
+	Pbind(
+		\type, \set,
+		\id, ~snare,
+		\instument, \snare,
+		\args, #[\t_gate],
+		\t_gate, Pseq(~snarePattern, inf),
+));
+
+
+~cowbellSeq = Pdef(
+	\cowbellSeq,
+	Pbind(
+		\type, \set,
+		\id, ~cowbell,
+		\instument, \snare,
+		\args, #[\t_gate],
+		\t_gate, Pseq(~cowbellPattern, inf),
+));
+
+)
+
+/*----------------------------END SEQUENCES-------------------------------*/
 
 /*----------------------------GUI-----------------------------------------*/
 (
@@ -179,13 +185,16 @@ var w, w_width, w_height, screen_size,
 tempoKnob,
 //KICK VARIABLES
 kickPlayBtn, decayKnob, punchKnob,
+kickSeqHitsKnob, kickSeqLengthKnob,
 //SNARE VARIABLES
 snarePlayBtn,snareDecayKnob,snareToneKnob,
+snareSeqHitsKnob, snareSeqLengthKnob,
 //COWBELL VARIABLES
-cowPlayBtn, cow_freq_knob, cow;
+cowPlayBtn, cow_freq_knob,
+cowbellSeqHitsKnob, cowbellSeqLengthKnob;
 
-w_width = 550;
-w_height = 600;
+w_width = 1024;
+w_height = 720;
 screen_size = Window.screenBounds;
 
 w = Window("Euclidean AlgoRhythmic Sequencer", Rect(
@@ -202,7 +211,7 @@ w.alwaysOnTop = true;                         //For Developing purposes, it's be
 
 /*------------------------------TEMPO-------------------------------------*/
 g = ControlSpec.new(40, 240, \linear, 1);
-tempoKnob = EZKnob(w, Rect(400, 10, 100, 100),"bpm", g, initval:120);
+tempoKnob = EZKnob(w, Rect(480, 10, 100, 100),"bpm", g, initval:120);
 
 tempoKnob.action_({
 	var tmp = tempoKnob.value;
@@ -219,6 +228,7 @@ kickPlayBtn.string = "kik play";
 
 kickPlayBtn.action_({ arg butt;
 	butt.value.asBoolean.not.postln;
+	~kickPattern = ~compute_rhythm.value(2,8);
 	~kickSeq.play(quant:4);
 
 });
@@ -236,19 +246,56 @@ punchKnob = EZKnob(w,Rect(130,10,100,100),"punch",g,initVal:0.5);
 punchKnob.action_({
 	~kick.set(\punch,punchKnob.value);
 });
+/*-----Euclidean Rhythm Controls: Kick--------*/
+
+
+g = ControlSpec.new(1, 16, \lin, 1);
+kickSeqLengthKnob = EZKnob(w,Rect(250,10,80,80),"length",g,initVal:16);
+
+kickSeqLengthKnob.action_({
+	~kickPattern = ~compute_rhythm.value(kickSeqHitsKnob.value, kickSeqLengthKnob.value);
+	~kickSeq = Pdef(
+		\kickSeq,
+		Pbind(
+			\type, \set,
+			\id, ~kick,
+			\instument, \kick,
+			\args, #[\t_gate],
+			\t_gate, Pseq(~kickPattern, inf),
+	));
+});
+
+g = ControlSpec.new(0, 16, \lin, 1);
+kickSeqHitsKnob = EZKnob(w,Rect(360,10,80,80),"hits",g,initVal:0);
+
+kickSeqHitsKnob.action_({
+	~kickPattern = ~compute_rhythm.value(kickSeqHitsKnob.value, kickSeqLengthKnob.value);
+	~kickSeq = Pdef(
+		\kickSeq,
+		Pbind(
+			\type, \set,
+			\id, ~kick,
+			\instument, \kick,
+			\args, #[\t_gate],
+			\t_gate, Pseq(~kickPattern, inf),
+	));
+
+});
+
 /*--------------------------END KICK---------------------------------------*/
 /*-----------------------------SNARE---------------------------------------*/
 
-/*---- btnPlay -----*/
+/* ---- btnPlay -----*/
 snarePlayBtn = Button(w, Rect(20, 540, 210, 30));
 snarePlayBtn.string = "snr play";
 
 snarePlayBtn.action_({ arg butt;
 	butt.value.asBoolean.not.postln;
+	~snarePattern = ~compute_rhythm.value(11,13);
 	~snareSeq.play(quant:4);
 });
 
-/*---- Snare_Decay_Knob -----*/
+/* ---- Snare_Decay_Knob -----*/
 g = ControlSpec.new(0.05, 1, \lin);
 snareDecayKnob = EZKnob(w,Rect(10,425,100,100),"decay",g,initVal:0.1);
 
@@ -262,6 +309,41 @@ snareToneKnob = EZKnob(w,Rect(130,425,100,100),"tone",g,initVal:1);
 
 snareToneKnob.action_({
 	~snare.set(\tone,snareToneKnob.value);
+});
+/*-----Euclidean Rhythm Controls: snare--------*/
+
+
+g = ControlSpec.new(1, 16, \lin, 1);
+snareSeqLengthKnob = EZKnob(w,Rect(250,425,80,80),"length",g,initVal:16);
+
+snareSeqLengthKnob.action_({
+	~snarePattern = ~compute_rhythm.value(snareSeqHitsKnob.value, snareSeqLengthKnob.value);
+	~snareSeq = Pdef(
+	\snareSeq,
+	Pbind(
+		\type, \set,
+		\id, ~snare,
+		\instument, \snare,
+		\args, #[\t_gate],
+		\t_gate, Pseq(~snarePattern, inf),
+));
+});
+
+g = ControlSpec.new(0, 16, \lin, 1);
+snareSeqHitsKnob = EZKnob(w,Rect(360,425,80,80),"hits",g,initVal:0);
+
+snareSeqHitsKnob.action_({
+	~snarePattern = ~compute_rhythm.value(snareSeqHitsKnob.value, snareSeqLengthKnob.value);
+	~snareSeq = Pdef(
+	\snareSeq,
+	Pbind(
+		\type, \set,
+		\id, ~snare,
+		\instument, \snare,
+		\args, #[\t_gate],
+		\t_gate, Pseq(~snarePattern, inf),
+));
+
 });
 
 /*--------------------------END SNARE---------------------------------------*/
@@ -282,6 +364,41 @@ cow_freq_knob = EZKnob(w,Rect(10,240,100,100),"tone", g,initVal:0.5);
 
 cow_freq_knob.action_({
 	~cowbell.set(\fund_freq,240+(cow_freq_knob.value*700));
+});
+/*-----Euclidean Rhythm Controls: cowbell--------*/
+
+
+g = ControlSpec.new(1, 16, \lin, 1);
+cowbellSeqLengthKnob = EZKnob(w,Rect(250,240,80,80),"length",g,initVal:16);
+
+cowbellSeqLengthKnob.action_({
+	~cowbellPattern = ~compute_rhythm.value(cowbellSeqHitsKnob.value, cowbellSeqLengthKnob.value);
+	~cowbellSeq = Pdef(
+	\cowbellSeq,
+	Pbind(
+		\type, \set,
+		\id, ~cowbell,
+		\instument, \cowbell,
+		\args, #[\t_gate],
+		\t_gate, Pseq(~cowbellPattern, inf),
+));
+});
+
+g = ControlSpec.new(0, 16, \lin, 1);
+cowbellSeqHitsKnob = EZKnob(w,Rect(360,240,80,80),"hits",g,initVal:0);
+
+cowbellSeqHitsKnob.action_({
+	~cowbellPattern = ~compute_rhythm.value(cowbellSeqHitsKnob.value, cowbellSeqLengthKnob.value);
+	~cowbellSeq = Pdef(
+	\cowbellSeq,
+	Pbind(
+		\type, \set,
+		\id, ~cowbell,
+		\instument, \cowbell,
+		\args, #[\t_gate],
+		\t_gate, Pseq(~cowbellPattern, inf),
+));
+
 });
 
 /*--------------------------END COWBELL------------------------------------*/
