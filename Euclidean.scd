@@ -10,7 +10,7 @@ SynthDef("kick", {arg amp=0.4, freq=60, t_gate=0, decay=1, punch=0.5, pan=0.0;
 	ampEnv = EnvGen.kr(Env.adsr(0.01, 3, 0.5, decay),	gate:t_gate);
 	impact = EnvGen.kr(Env.perc(0, decay, punch*5), gate:t_gate);
 	kick = SinOsc.ar(freq*impact);
-	kick = kick * ampEnv;
+	kick = Mix(kick * ampEnv);
 	kick = LPF.ar(kick, 300);
 
 	Out.ar(0, Pan2.ar( kick, pan, amp ));
@@ -35,11 +35,11 @@ SynthDef(\cowbell, { arg amp=0.3, t_gate=0, fund_freq=540, pan=0.0;
 
 
 //-SNARE
-SynthDef(\snare, {arg t_gate=0, decay=0.1, amp=0.3, pan=0.0;
+SynthDef(\snare, {arg t_gate=0, tone=1,  decay=0.1, amp=0.3, pan=0.0;
 	var ampEnv, snare;
 
 	ampEnv = EnvGen.kr(Env.perc(0.001, decay, 1, -5), gate: t_gate);
-	snare = SinOsc.ar(120) - WhiteNoise.ar(0.5, 0.5);
+	snare = SinOsc.ar(120*tone) - WhiteNoise.ar(0.5, 0.5);
 	snare = Mix( snare * ampEnv);
 
 	Out.ar(0, Pan2.ar( snare, pan, amp ) );
@@ -92,7 +92,7 @@ SynthDef(\snare, {arg t_gate=0, decay=0.1, amp=0.3, pan=0.0;
 ~compute_rhythm = {
 
 	arg num_hits, length;
-	var divisor, level, remainder, count, seq, result, flag = 0, k, n;
+	var divisor, level, remainder, count, seq, flag = 0, k, n;
 
 	k = num_hits;
 	n = length;
@@ -134,34 +134,31 @@ SynthDef(\snare, {arg t_gate=0, decay=0.1, amp=0.3, pan=0.0;
 		count = count.insert(level, divisor);
 
 		count.postln;
-
-		if(flag == 0, {
-			seq = ~build_string.value(seq, level, count, remainder);
-		});
-		if(flag == 1, {
-			seq = ~build_string_inverted.value(seq, level, count, remainder);
-		});
+		seq = ~build_string.value(seq, level, count, remainder, flag);
 		seq.postln;
 	});
-	seq.reverse;
+	if(flag == 0, {
+		seq = seq.reverse;
+	});
+	seq;
 };
 )
 
 (
 ~build_string = {
-	arg bitmap, level, count, remainder;
+	arg bitmap, level, count, remainder, flag;
 
 	if(level == -1 , {
-		bitmap = bitmap ++ [0];
+		bitmap = bitmap ++ [flag] //add 0 if k <= n/2;
 	}, {
 		if(level == -2 , {
-			bitmap = bitmap ++ [1];
+			bitmap = bitmap ++ [1-flag];
 		}, {
 			for(0, count[level]-1, {
-				bitmap = ~build_string.value(bitmap, level-1, count, remainder);
+				bitmap = ~build_string.value(bitmap, level-1, count, remainder, flag);
 			});
 			if(remainder[level] != 0, {
-				bitmap = ~build_string.value(bitmap, level-2, count, remainder);
+				bitmap = ~build_string.value(bitmap, level-2, count, remainder, flag);
 			});
 		});
 	});
@@ -169,29 +166,7 @@ SynthDef(\snare, {arg t_gate=0, decay=0.1, amp=0.3, pan=0.0;
 }
 )
 
-(
-~build_string_inverted = {
-	arg bitmap, level, count, remainder;
-
-	if(level == -1 , {
-		bitmap = bitmap ++ [1];
-	}, {
-		if(level == -2 , {
-			bitmap = bitmap ++ [0];
-		}, {
-			for(0, count[level]-1, {
-				bitmap = ~build_string_inverted.value(bitmap, level-1, count, remainder);
-			});
-			if(remainder[level] != 0, {
-				bitmap = ~build_string_inverted.value(bitmap, level-2, count, remainder);
-			});
-		});
-	});
-	bitmap;
-}
-)
-
-(~compute_rhythm.value(2,8);)
+(~compute_rhythm.value(8,9);)
 
 /*----------------------------END BJORKLUND ALGORITHM---------------------*/
 
@@ -205,7 +180,7 @@ tempoKnob,
 //KICK VARIABLES
 kickPlayBtn, decayKnob, punchKnob,
 //SNARE VARIABLES
-snarePlayBtn,snareDecayKnob,
+snarePlayBtn,snareDecayKnob,snareToneKnob,
 //COWBELL VARIABLES
 cowPlayBtn, cow_freq_knob, cow;
 
@@ -214,8 +189,8 @@ w_height = 600;
 screen_size = Window.screenBounds;
 
 w = Window("Euclidean AlgoRhythmic Sequencer", Rect(
-	(screen_size.width /2) - w_width/2,
-	(screen_size.height /2) - w_height/2 ,
+	(screen_size.width /2) - (w_width/2),
+	(screen_size.height /2) - (w_height/2) ,
 	w_width,
 	w_height));
 w.alwaysOnTop = true;                         //For Developing purposes, it's better not to swap back and forth from code to window
@@ -264,7 +239,7 @@ punchKnob.action_({
 /*--------------------------END KICK---------------------------------------*/
 /*-----------------------------SNARE---------------------------------------*/
 
-/* ---- btnPlay -----*/
+/*---- btnPlay -----*/
 snarePlayBtn = Button(w, Rect(20, 540, 210, 30));
 snarePlayBtn.string = "snr play";
 
@@ -273,12 +248,20 @@ snarePlayBtn.action_({ arg butt;
 	~snareSeq.play(quant:4);
 });
 
-/* ---- Snare_Decay_Knob -----*/
+/*---- Snare_Decay_Knob -----*/
 g = ControlSpec.new(0.05, 1, \lin);
 snareDecayKnob = EZKnob(w,Rect(10,425,100,100),"decay",g,initVal:0.1);
 
 snareDecayKnob.action_({
 	~snare.set(\decay,snareDecayKnob.value);
+});
+
+/* ---- Snare_Tone_Knob -----*/
+g = ControlSpec.new(0.7, 1.3, \lin);
+snareToneKnob = EZKnob(w,Rect(130,425,100,100),"tone",g,initVal:1);
+
+snareToneKnob.action_({
+	~snare.set(\tone,snareToneKnob.value);
 });
 
 /*--------------------------END SNARE---------------------------------------*/
