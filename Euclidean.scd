@@ -4,7 +4,7 @@
 /*-------------------------SOUND SOURCES-----------------------------------*/
 (
 //-KICK
-SynthDef("kick", {arg amp=0.3, freq=60, t_gate=0, decay=1, punch=0.5, pan=0.0;
+SynthDef("kick", {arg amp=0.4, freq=60, t_gate=0, decay=1, punch=0.5, pan=0.0;
 	var kick, ampEnv, impact;
 
 	ampEnv = EnvGen.kr(Env.adsr(0.01, 3, 0.5, decay),	gate:t_gate);
@@ -197,25 +197,33 @@ SynthDef(\snare, {arg t_gate=0, decay=0.1, amp=0.3, pan=0.0;
 
 /*----------------------------GUI-----------------------------------------*/
 (
-var w, w_width, w_height, screen_size;
+
+//GENERAL GUI VARIABLES
+var w, w_width, w_height, screen_size,
+//TEMPO VARIABLES
+tempoKnob,
+//KICK VARIABLES
+kickPlayBtn, decayKnob, punchKnob,
+//SNARE VARIABLES
+snarePlayBtn,snareDecayKnob,
+//COWBELL VARIABLES
+cowPlayBtn, cow_freq_knob, cow;
+
 w_width = 550;
 w_height = 600;
 screen_size = Window.screenBounds;
 
-w = Window("Euclidean AlgoRhythmic Sequencer", Rect(100,100,w_width/2, w_height/2));
+w = Window("Euclidean AlgoRhythmic Sequencer", Rect(
+	(screen_size.width /2) - w_width/2,
+	(screen_size.height /2) - w_height/2 ,
+	w_width,
+	w_height));
 w.alwaysOnTop = true;                         //For Developing purposes, it's better not to swap back and forth from code to window
+
 //backgound image....not working
 //var a = Image.new(SCDoc.helpSourceDir +/+ "GUI Background.jpg");
 //w.view.backgroundImage_(a);
 
-//TEMPO GUI
-var tempoKnob,
-//KICK GUI
-kickPlayBtn, decayKnob, punchKnob,
-//SNARE GUI
-snarePlayBtn,snareDecayKnob,
-//COWBELL GUI
-cowPlayBtn, cow_freq_knob, cow;
 
 /*------------------------------TEMPO-------------------------------------*/
 g = ControlSpec.new(40, 240, \linear, 1);
