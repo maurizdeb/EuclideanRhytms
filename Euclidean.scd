@@ -4,21 +4,22 @@
 /*-------------------------SOUND SOURCES-----------------------------------*/
 (
 //-KICK
-SynthDef("kick", {arg amp=0.4, freq=60, t_gate=0, decay=1, punch=0.5, pan=0.0;
+SynthDef("kick", {arg amp=0.5, freq=60, t_gate=0, decay=1, punch=0.5, pan=0.0;
 	var kick, ampEnv, impact;
 
-	ampEnv = EnvGen.kr(Env.adsr(0.01, 3, 0.5, decay),	gate:t_gate);
-	impact = EnvGen.kr(Env.perc(0, decay, punch*5), gate:t_gate);
+	ampEnv = EnvGen.kr(Env.adsr(0.01, 3, 0.5, decay));
+	impact = EnvGen.kr(Env.perc(0, decay, punch*5), t_gate);
 	kick = SinOsc.ar(freq*impact);
-	kick = kick * ampEnv;
+	kick = Mix(kick * ampEnv);
 	kick = LPF.ar(kick, 300);
 
 	Out.ar(0, Pan2.ar( kick, pan, amp ));
 }).add;
 
 
+
 //-808_COWBELL
-SynthDef(\cowbell, { arg amp=0.3, t_gate=0, fund_freq=540, pan=0.0;
+SynthDef(\cowbell, { arg amp=0.4, t_gate=0, fund_freq=540, pan=0.0;
     var cow, env;
 
     cow = Pulse.ar( fund_freq * [ 1, 1.5085 ], [ 0.565, 0.445 ], [ 0.4, 0.6 ] ).distort;
@@ -39,10 +40,29 @@ SynthDef(\snare, {arg t_gate=0, tone=1,  decay=0.1, amp=0.3, pan=0.0;
 	var ampEnv, snare;
 
 	ampEnv = EnvGen.kr(Env.perc(0.001, decay, 1, -5), gate: t_gate);
-	snare = SinOsc.ar(120*tone) - WhiteNoise.ar(0.5, 0.5);
+	snare = SinOsc.ar(tone*120) - WhiteNoise.ar(0.5, 0.5);
 	snare = Mix( snare * ampEnv);
 
 	Out.ar(0, Pan2.ar( snare, pan, amp ) );
+}).add;
+
+//HI-HAT
+SynthDef('hi_hat', {
+	arg t_gate = 0, amp = 0.2, opening = 0.2, freq = 4.2;
+
+    var hatosc, hatenv, hatnoise, hatoutput;
+
+    hatnoise = LPF.ar(WhiteNoise.ar(1),freq*1428);
+
+    hatosc = HPF.ar(hatnoise,2000);
+	hatenv = EnvGen.kr(Env.new([0,1, 0], [0.001, opening], [\lin, \lin]), t_gate,doneAction:0);
+
+    hatoutput = Mix(hatosc * hatenv);
+
+    Out.ar(0,
+    Pan2.ar(hatoutput, 0, amp)
+    )
+
 }).add;
 
 )
@@ -136,10 +156,12 @@ SynthDef(\snare, {arg t_gate=0, tone=1,  decay=0.1, amp=0.3, pan=0.0;
 ~kick = Synth("kick");
 ~cowbell = Synth("cowbell");
 ~snare = Synth("snare");
+~hi_hat = Synth(\hi_hat);
 
 ~kickPattern = ~compute_rhythm.value(2,8);
 ~snarePattern = ~compute_rhythm.value(5,13);
 ~cowbellPattern = ~compute_rhythm.value(2,7);
+~hi_hatPattern = ~compute_rhythm.value(4,8);
 
 ~kickSeq = Pdef(
 	\kickSeq,
@@ -172,6 +194,16 @@ SynthDef(\snare, {arg t_gate=0, tone=1,  decay=0.1, amp=0.3, pan=0.0;
 		\t_gate, Pseq(~cowbellPattern, inf),
 ));
 
+~hi_hatSeq = Pdef(
+	\hi_hatSeq,
+	Pbind(
+		\type, \set,
+		\id, ~hi_hat,
+		\instument, \hi_hat,
+		\args, #[\t_gate],
+		\t_gate, Pseq(~hi_hatPattern, inf),
+));
+
 )
 
 /*----------------------------END SEQUENCES-------------------------------*/
@@ -191,7 +223,10 @@ snarePlayBtn,snareDecayKnob,snareToneKnob,
 snareSeqHitsKnob, snareSeqLengthKnob,
 //COWBELL VARIABLES
 cowPlayBtn, cow_freq_knob,
-cowbellSeqHitsKnob, cowbellSeqLengthKnob;
+cowbellSeqHitsKnob, cowbellSeqLengthKnob,
+//HI-HAT VARIABLES
+hi_hatPlayBtn, hi_hatToneKnob, hi_hatDecayKnob,
+hi_hatSeqHitsKnob, hi_hatSeqLengthKnob;
 
 w_width = 1024;
 w_height = 720;
@@ -211,7 +246,7 @@ w.alwaysOnTop = true;                         //For Developing purposes, it's be
 
 /*------------------------------TEMPO-------------------------------------*/
 g = ControlSpec.new(40, 240, \linear, 1);
-tempoKnob = EZKnob(w, Rect(480, 10, 100, 100),"bpm", g, initval:120);
+tempoKnob = EZKnob(w, Rect(720, 10, 100, 100),"bpm", g, initval:120);
 
 tempoKnob.action_({
 	var tmp = tempoKnob.value;
@@ -234,18 +269,19 @@ kickPlayBtn.action_({ arg butt;
 });
 /* ---- Kick_Decay_Knob -----*/
 g = ControlSpec.new(0, 3, \lin);
-decayKnob = EZKnob(w,Rect(10,10,100,100),"decay",g,initVal:1.5);
+decayKnob = EZKnob(w,Rect(10,10,100,100),"decay hf",g,initVal:0.001);
 
 decayKnob.action_({
 	~kick.set(\decay,decayKnob.value);
 });
 /* ---- Kick_Punch_Knob -----*/
 g = ControlSpec.new(0, 1, \lin);
-punchKnob = EZKnob(w,Rect(130,10,100,100),"punch",g,initVal:0.5);
+punchKnob = EZKnob(w,Rect(130,10,100,100),"punch hf",g,initVal:0.02);
 
 punchKnob.action_({
 	~kick.set(\punch,punchKnob.value);
 });
+
 /*-----Euclidean Rhythm Controls: Kick--------*/
 
 
@@ -402,9 +438,74 @@ cowbellSeqHitsKnob.action_({
 });
 
 /*--------------------------END COWBELL------------------------------------*/
+
+/*-----------------------------HI HAT---------------------------------------*/
+
+/* ---- btnPlay -----*/
+hi_hatPlayBtn = Button(w, Rect(20, 725, 210, 30));
+hi_hatPlayBtn.string = "hi-hat play";
+
+hi_hatPlayBtn.action_({ arg butt;
+	butt.value.asBoolean.not.postln;
+	~hi_hatPattern = ~compute_rhythm.value(11,13);
+	~hi_hatSeq.play(quant:4);
+});
+
+/* ---- Hi-hat_Decay_Knob -----*/
+g = ControlSpec.new(0.05, 1, \lin);
+hi_hatDecayKnob = EZKnob(w,Rect(10,610,100,100),"decay",g,initVal:0.1);
+
+hi_hatDecayKnob.action_({
+	~hi_hat.set(\opening,hi_hatDecayKnob.value);
+});
+
+/* ---- Hi-hat_Tone_Knob -----*/
+g = ControlSpec.new(0.7, 6, \lin);
+hi_hatToneKnob = EZKnob(w,Rect(130,610,100,100),"tone",g,initVal:1);
+
+hi_hatToneKnob.action_({
+	~hi_hat.set(\freq,hi_hatToneKnob.value);
+});
+/*-----Euclidean Rhythm Controls: snare--------*/
+
+
+g = ControlSpec.new(1, 16, \lin, 1);
+hi_hatSeqLengthKnob = EZKnob(w,Rect(250,610,80,80),"length",g,initVal:16);
+
+hi_hatSeqLengthKnob.action_({
+	~hi_hatPattern = ~compute_rhythm.value(hi_hatSeqHitsKnob.value, hi_hatSeqLengthKnob.value);
+	~hi_hatSeq = Pdef(
+	\hi_hatSeq,
+	Pbind(
+		\type, \set,
+		\id, ~hi_hat,
+		\instument, \hi_hat,
+		\args, #[\t_gate],
+		\t_gate, Pseq(~hi_hatPattern, inf),
+));
+});
+
+g = ControlSpec.new(0, 16, \lin, 1);
+hi_hatSeqHitsKnob = EZKnob(w,Rect(360,610,80,80),"hits",g,initVal:0);
+
+hi_hatSeqHitsKnob.action_({
+	~hi_hatPattern = ~compute_rhythm.value(hi_hatSeqHitsKnob.value, hi_hatSeqLengthKnob.value);
+	~hi_hatSeq = Pdef(
+	\hi_hatSeq,
+	Pbind(
+		\type, \set,
+		\id, ~hi_hat,
+		\instument, \hi_hat,
+		\args, #[\t_gate],
+		\t_gate, Pseq(~hi_hatPattern, inf),
+));
+
+});
+
+/*--------------------------END HI-HAT---------------------------------------*/
 w.front;
 
-w.onClose={s.freeAll; ~kickSeq.stop; ~cowbellSeq.stop; ~snareSeq.stop; ~kickSeq.remove; ~cowbellSeq.remove; ~snareSeq.remove;};
+w.onClose={s.freeAll; ~kickSeq.stop; ~cowbellSeq.stop; ~snareSeq.stop; ~hi_hatSeq.stop;~kickSeq.remove; ~cowbellSeq.remove; ~snareSeq.remove; ~hi_hatSeq.remove};
 )
 
 
