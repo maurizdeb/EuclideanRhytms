@@ -48,24 +48,26 @@ SynthDef(\snare, {arg t_gate=0, tone=1,  decay=0.1, amp=0.3, pan=0.0;
 
 //HI-HAT
 
-SynthDef('hi_hat', {
-	arg t_gate = 0, opening = 0.2, amp = 0.35, freq = 1;
+SynthDef(\hi_hat, { arg t_gate = 0, opening = 0.2, amp = 0.35, freq = 1, pan=0.0;
 
-    var hatosc, hatenv, hatnoise, hatoutput;
+    var hat, ampEnv;
 
-	hatnoise = LPF.ar(SinOsc.ar(6000*freq) - WhiteNoise.ar(1),6000);
+	hat = LPF.ar(SinOsc.ar(6000*freq, mul: 0.2) - PinkNoise.ar(1),6000);
+    hat = HPF.ar(hat,2000);
+	
+	ampEnv = EnvGen.kr(Env.perc(0.001, opening, 1, -5), gate: t_gate);
 
-    hatosc = HPF.ar(hatnoise,2000);
-	hatenv = EnvGen.kr(Env.new([0,1, 0], [0.001, opening], [\lin, \lin]), t_gate,doneAction:0);
+    hat = (hat * ampEnv);
 
-    hatoutput = (hatosc * hatenv);
-
-    Out.ar(0,
-    Pan2.ar(hatoutput, 0, amp)
-    )
-
+    Out.ar(0, Pan2.ar(hat, pan, amp) );
 }).add;
 
+
+/*----INSTANTIATING SOUNDS--------*/
+~kick = Synth("kick");
+~cowbell = Synth("cowbell");
+~snare = Synth("snare");
+~hi_hat = Synth("hi_hat");
 
 )
 
@@ -149,62 +151,6 @@ SynthDef('hi_hat', {
 )
 
 /*----------------------------END BJORKLUND ALGORITHM---------------------*/
-/*----------------------------SEQUENCES-----------------------------------*/
-(
-~kick = Synth("kick");
-~cowbell = Synth("cowbell");
-~snare = Synth("snare");
-~hi_hat = Synth(\hi_hat);
-
-~kickPattern = ~compute_rhythm.value(2,8);
-~snarePattern = ~compute_rhythm.value(5,13);
-~cowbellPattern = ~compute_rhythm.value(2,7);
-~hi_hatPattern = ~compute_rhythm.value(4,8);
-
-~kickSeq = Pdef(
-	\kickSeq,
-	Pbind(
-		\type, \set,
-		\id, ~kick,
-		\instument, \kick,
-		\args, #[\t_gate],
-		\t_gate, Pseq(~kickPattern, inf),
-));
-
-~snareSeq = Pdef(
-	\snareSeq,
-	Pbind(
-		\type, \set,
-		\id, ~snare,
-		\instument, \snare,
-		\args, #[\t_gate],
-		\t_gate, Pseq(~snarePattern, inf),
-));
-
-
-~cowbellSeq = Pdef(
-	\cowbellSeq,
-	Pbind(
-		\type, \set,
-		\id, ~cowbell,
-		\instument, \snare,
-		\args, #[\t_gate],
-		\t_gate, Pseq(~cowbellPattern, inf),
-));
-
-~hi_hatSeq = Pdef(
-	\hi_hatSeq,
-	Pbind(
-		\type, \set,
-		\id, ~hi_hat,
-		\instument, \hi_hat,
-		\args, #[\t_gate],
-		\t_gate, Pseq(~hi_hatPattern, inf),
-));
-
-
-)
-/*----------------------------END SEQUENCES-------------------------------*/
 
 /*----------------------------GUI-----------------------------------------*/
 (
@@ -227,7 +173,7 @@ hi_hatPlayBtn, hi_hatToneKnob, hi_hatDecayKnob,
 hi_hatSeqHitsKnob, hi_hatSeqLengthKnob;
 
 w_width = 1024;
-w_height = 720;
+w_height = 800;
 screen_size = Window.screenBounds;
 
 w = Window("Euclidean AlgoRhythmic Sequencer", Rect(
@@ -267,14 +213,14 @@ kickPlayBtn.action_({ arg butt;
 });
 /* ---- Kick_Decay_Knob -----*/
 g = ControlSpec.new(0, 3, \lin);
-decayKnob = EZKnob(w,Rect(10,10,100,100),"decay hf",g,initVal:0.001);
+decayKnob = EZKnob(w,Rect(10,10,100,100),"decay",g,initVal:0.001);
 
 decayKnob.action_({
 	~kick.set(\decay,decayKnob.value);
 });
 /* ---- Kick_Punch_Knob -----*/
 g = ControlSpec.new(0, 1, \lin);
-punchKnob = EZKnob(w,Rect(130,10,100,100),"punch hf",g,initVal:0.02);
+punchKnob = EZKnob(w,Rect(130,10,100,100),"punch",g,initVal:0.02);
 
 punchKnob.action_({
 	~kick.set(\punch,punchKnob.value);
