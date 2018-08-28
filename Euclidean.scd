@@ -47,23 +47,25 @@ SynthDef(\snare, {arg t_gate=0, tone=1,  decay=0.1, amp=0.3, pan=0.0;
 }).add;
 
 //HI-HAT
+
 SynthDef('hi_hat', {
-	arg t_gate = 0, amp = 0.2, opening = 0.2, freq = 4.2;
+	arg t_gate = 0, opening = 0.2, amp = 0.35, freq = 1;
 
     var hatosc, hatenv, hatnoise, hatoutput;
 
-    hatnoise = LPF.ar(WhiteNoise.ar(1),freq*1428);
+	hatnoise = LPF.ar(SinOsc.ar(6000*freq) - WhiteNoise.ar(1),6000);
 
     hatosc = HPF.ar(hatnoise,2000);
 	hatenv = EnvGen.kr(Env.new([0,1, 0], [0.001, opening], [\lin, \lin]), t_gate,doneAction:0);
 
-    hatoutput = Mix(hatosc * hatenv);
+    hatoutput = (hatosc * hatenv);
 
     Out.ar(0,
     Pan2.ar(hatoutput, 0, amp)
     )
 
 }).add;
+
 
 )
 
@@ -110,23 +112,21 @@ SynthDef('hi_hat', {
 			level = level +1;
 		});
 
-		remainder.postln;
-		count.postln;
+		//remainder.postln;
+		//count.postln;
 
 		count = count.insert(level, divisor);
 
-		count.postln;
+		//count.postln;
 		seq = ~build_string.value(seq, level, count, remainder, flag);
-		seq.postln;
+		//seq.postln;
 	});
 	if(flag == 0, {
 		seq = seq.reverse;
 	});
 	seq;
 };
-)
 
-(
 ~build_string = {
 	arg bitmap, level, count, remainder, flag;
 
@@ -147,8 +147,6 @@ SynthDef('hi_hat', {
 	bitmap;
 }
 )
-
-(~compute_rhythm.value(4,13);)
 
 /*----------------------------END BJORKLUND ALGORITHM---------------------*/
 /*----------------------------SEQUENCES-----------------------------------*/
@@ -204,8 +202,8 @@ SynthDef('hi_hat', {
 		\t_gate, Pseq(~hi_hatPattern, inf),
 ));
 
-)
 
+)
 /*----------------------------END SEQUENCES-------------------------------*/
 
 /*----------------------------GUI-----------------------------------------*/
@@ -460,13 +458,13 @@ hi_hatDecayKnob.action_({
 });
 
 /* ---- Hi-hat_Tone_Knob -----*/
-g = ControlSpec.new(0.7, 6, \lin);
+g = ControlSpec.new(0.83, 1.6, \lin);
 hi_hatToneKnob = EZKnob(w,Rect(130,610,100,100),"tone",g,initVal:1);
 
 hi_hatToneKnob.action_({
 	~hi_hat.set(\freq,hi_hatToneKnob.value);
 });
-/*-----Euclidean Rhythm Controls: snare--------*/
+/*-----Euclidean Rhythm Controls: hi-hat--------*/
 
 
 g = ControlSpec.new(1, 16, \lin, 1);
