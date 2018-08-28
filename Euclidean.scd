@@ -54,7 +54,7 @@ SynthDef(\hi_hat, { arg t_gate = 0, opening = 0.2, amp = 0.35, freq = 1, pan=0.0
 
 	hat = LPF.ar(SinOsc.ar(6000*freq, mul: 0.2) - PinkNoise.ar(1),6000);
     hat = HPF.ar(hat,2000);
-	
+
 	ampEnv = EnvGen.kr(Env.perc(0.001, opening, 1, -5), gate: t_gate);
 
     hat = (hat * ampEnv);
@@ -147,7 +147,8 @@ SynthDef(\hi_hat, { arg t_gate = 0, opening = 0.2, amp = 0.35, freq = 1, pan=0.0
 		});
 	});
 	bitmap;
-}
+};
+
 )
 
 /*----------------------------END BJORKLUND ALGORITHM---------------------*/
@@ -161,16 +162,16 @@ var w, w_width, w_height, screen_size,
 tempoKnob,
 //KICK VARIABLES
 kickPlayBtn, decayKnob, punchKnob,
-kickSeqHitsKnob, kickSeqLengthKnob,
+kickSeqHitsKnob, kickSeqLengthKnob, kickSeqOffsetKnob,
 //SNARE VARIABLES
 snarePlayBtn,snareDecayKnob,snareToneKnob,
-snareSeqHitsKnob, snareSeqLengthKnob,
+snareSeqHitsKnob, snareSeqLengthKnob, snareSeqOffsetKnob,
 //COWBELL VARIABLES
 cowPlayBtn, cow_freq_knob,
-cowbellSeqHitsKnob, cowbellSeqLengthKnob,
+cowbellSeqHitsKnob, cowbellSeqLengthKnob, cowbellSeqOffsetKnob,
 //HI-HAT VARIABLES
 hi_hatPlayBtn, hi_hatToneKnob, hi_hatDecayKnob,
-hi_hatSeqHitsKnob, hi_hatSeqLengthKnob;
+hi_hatSeqHitsKnob, hi_hatSeqLengthKnob, hi_hatSeqOffsetKnob;
 
 w_width = 1024;
 w_height = 800;
@@ -262,6 +263,25 @@ kickSeqHitsKnob.action_({
 
 });
 
+g = ControlSpec.new(0, 16, \lin, 1);
+kickSeqOffsetKnob = EZKnob(w,Rect(470,10,80,80),"offset",g,initVal:0);
+
+kickSeqOffsetKnob.action_({
+	if(kickSeqOffsetKnob.value < kickSeqLengthKnob.value, {
+		~kickPattern = ~kickPattern.rotate(kickSeqOffsetKnob.value.asInteger);
+		~kickSeq = Pdef(
+			\kickSeq,
+			Pbind(
+				\type, \set,
+				\id, ~kick,
+				\instument, \kick,
+				\args, #[\t_gate],
+				\t_gate, Pseq(~kickPattern, inf),
+		));
+	});
+
+});
+
 /*--------------------------END KICK---------------------------------------*/
 /*-----------------------------SNARE---------------------------------------*/
 
@@ -326,6 +346,25 @@ snareSeqHitsKnob.action_({
 
 });
 
+g = ControlSpec.new(0, 16, \lin, 1);
+snareSeqOffsetKnob = EZKnob(w,Rect(470,425,80,80),"offset",g,initVal:0);
+
+snareSeqOffsetKnob.action_({
+	if(snareSeqOffsetKnob.value < snareSeqLengthKnob.value, {
+		~snarePattern = ~snarePattern.rotate(snareSeqOffsetKnob.value.asInteger);
+		~snareSeq = Pdef(
+			\snareSeq,
+			Pbind(
+				\type, \set,
+				\id, ~snare,
+				\instument, \snare,
+				\args, #[\t_gate],
+				\t_gate, Pseq(~snarePattern, inf),
+		));
+	});
+
+});
+
 /*--------------------------END SNARE---------------------------------------*/
 /*--------------------------COWBELL----------------------------------------*/
 
@@ -381,6 +420,24 @@ cowbellSeqHitsKnob.action_({
 
 });
 
+g = ControlSpec.new(0, 16, \lin, 1);
+cowbellSeqOffsetKnob = EZKnob(w,Rect(470,240,80,80),"offset",g,initVal:0);
+
+cowbellSeqOffsetKnob.action_({
+	if(cowbellSeqOffsetKnob.value < cowbellSeqLengthKnob.value, {
+		~cowbellPattern = ~cowbellPattern.rotate(cowbellSeqOffsetKnob.value.asInteger);
+		~cowbellSeq = Pdef(
+			\cowbellSeq,
+			Pbind(
+				\type, \set,
+				\id, ~cowbell,
+				\instument, \cowbell,
+				\args, #[\t_gate],
+				\t_gate, Pseq(~cowbellPattern, inf),
+		));
+	});
+
+});
 /*--------------------------END COWBELL------------------------------------*/
 
 /*-----------------------------HI HAT---------------------------------------*/
@@ -443,6 +500,25 @@ hi_hatSeqHitsKnob.action_({
 		\args, #[\t_gate],
 		\t_gate, Pseq(~hi_hatPattern, inf),
 ));
+
+});
+
+g = ControlSpec.new(0, 16, \lin, 1);
+hi_hatSeqOffsetKnob = EZKnob(w,Rect(470,610,80,80),"offset",g,initVal:0);
+
+hi_hatSeqOffsetKnob.action_({
+	if(hi_hatSeqOffsetKnob.value < hi_hatSeqLengthKnob.value, {
+		~hi_hatPattern = ~hi_hatPattern.rotate(hi_hatSeqOffsetKnob.value.asInteger);
+		~cowbellSeq = Pdef(
+			\hi_hatSeq,
+			Pbind(
+				\type, \set,
+				\id, ~hi_hat,
+				\instument, \hi_hat,
+				\args, #[\t_gate],
+				\t_gate, Pseq(~hi_hat, inf),
+		));
+	});
 
 });
 
