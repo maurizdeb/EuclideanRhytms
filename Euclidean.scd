@@ -62,12 +62,25 @@ SynthDef(\hi_hat, { arg t_gate = 0, opening = 0.2, amp = 0.35, freq = 1, pan=0.0
     Out.ar(0, Pan2.ar(hat, pan, amp) );
 }).add;
 
+//SAMPLER-1
+
+SynthDef(\sampler1, { arg buf, rate=1, amp=1, t_gate=0, pan=0.0;
+
+	var sample;
+
+	sample = PlayBuf.ar(2, buf, rate, t_gate, 1);
+
+	Out.ar(0, Pan2.ar(sample, pan, amp));
+
+}).add;
+
 
 /*----INSTANTIATING SOUNDS--------*/
 ~kick = Synth("kick");
 ~cowbell = Synth("cowbell");
 ~snare = Synth("snare");
 ~hi_hat = Synth("hi_hat");
+~sampler1 = Synth("sampler1");
 
 )
 
@@ -171,10 +184,13 @@ cowPlayBtn, cow_freq_knob,
 cowbellSeqHitsKnob, cowbellSeqLengthKnob, cowbellSeqOffsetKnob,
 //HI-HAT VARIABLES
 hi_hatPlayBtn, hi_hatToneKnob, hi_hatDecayKnob,
-hi_hatSeqHitsKnob, hi_hatSeqLengthKnob, hi_hatSeqOffsetKnob;
+hi_hatSeqHitsKnob, hi_hatSeqLengthKnob, hi_hatSeqOffsetKnob,
+//SAMPLER VARIABLES
+samplerLoadBtn, samplerPlayBtn, sample_rate_knob,
+samplerSeqHitsKnob, samplerSeqLengthKnob, samplerSeqOffsetKnob;
 
 w_width = 1024;
-w_height = 800;
+w_height = 950;
 screen_size = Window.screenBounds;
 
 w = Window("Euclidean AlgoRhythmic Sequencer", Rect(
@@ -191,7 +207,7 @@ w.alwaysOnTop = true;                         //For Developing purposes, it's be
 
 /*------------------------------TEMPO-------------------------------------*/
 g = ControlSpec.new(40, 240, \linear, 1);
-tempoKnob = EZKnob(w, Rect(720, 10, 100, 100),"bpm", g, initval:120);
+tempoKnob = EZKnob(w, Rect(720, 10, 100, 100),"bpm", g, initVal:120);
 
 tempoKnob.action_({
 	var tmp = tempoKnob.value;
@@ -513,7 +529,7 @@ hi_hatSeqOffsetKnob.action_({
 	if(hi_hatSeqOffsetKnob.value < hi_hatSeqLengthKnob.value, {
 		var pattern;
 		pattern = ~hi_hatPattern.rotate(hi_hatSeqOffsetKnob.value.asInteger);
-		~cowbellSeq = Pdef(
+		~hi_hatSeq = Pdef(
 			\hi_hatSeq,
 			Pbind(
 				\type, \set,
@@ -527,6 +543,108 @@ hi_hatSeqOffsetKnob.action_({
 });
 
 /*--------------------------END HI-HAT---------------------------------------*/
+
+/*--------------------------SAMPLER------------------------------------------*/
+/*samplerLoadBtn, samplerPlayBtn,
+samplerSeqHitsKnob, samplerSeqLengthKnob, samplerSeqOffsetKnob;*/
+
+/* ---- btnPlay -----*/
+samplerPlayBtn = Button(w, Rect(20, 880, 210, 30));
+samplerPlayBtn.string = "sample play";
+
+samplerPlayBtn.action_({ arg butt;
+	butt.value.asBoolean.not.postln;
+	~sampler1Pattern = ~compute_rhythm.value(11,13);
+	~sapler1Seq.play(quant:4);
+});
+
+/* ---- btnLoad -----*/
+samplerLoadBtn = Button(w, Rect(20, 830, 210, 30));
+samplerLoadBtn.string = "load sample";
+
+samplerLoadBtn.action_({ arg butt;
+	FileDialog.new(
+		{//FUNCTION ON FILE SELECTION
+			arg file;
+
+			var path = file[0];
+			// read a soundfile
+			b = Buffer.read(s, path);
+
+			b.bufnum.postln;
+
+			~sampler1.set(\buf, b.bufnum);
+			~sampler1.set(\t_gate, 1);
+		},
+		{},
+		fileMode: 1, acceptMode: 0,
+		stripResult: false);
+});
+
+/* ---- sample rate knob -----*/
+g = ControlSpec.new(0, 1, \lin);
+sample_rate_knob = EZKnob(w,Rect(10,715,100,100),"rate", g,initVal:0.5);
+
+sample_rate_knob.action_({
+	~sampler1.set(\rate,sample_rate_knob.value);
+});
+
+/*-----Euclidean Rhythm Controls: sampler1--------*/
+
+
+g = ControlSpec.new(1, 16, \lin, 1);
+samplerSeqLengthKnob = EZKnob(w,Rect(250,820,80,80),"length",g,initVal:16);
+
+samplerSeqLengthKnob.action_({
+	~sampler1Pattern = ~compute_rhythm.value(samplerSeqHitsKnob.value, samplerSeqLengthKnob.value);
+	~sapler1Seq = Pdef(
+	\sapler1Seq,
+	Pbind(
+		\type, \set,
+		\id, ~sampler1,
+		\instument, \sampler1,
+		\args, #[\t_gate],
+		\t_gate, Pseq(~sampler1Pattern, inf),
+));
+});
+
+g = ControlSpec.new(0, 16, \lin, 1);
+samplerSeqHitsKnob = EZKnob(w,Rect(360,820,80,80),"hits",g,initVal:0);
+
+samplerSeqHitsKnob.action_({
+	~sampler1Pattern = ~compute_rhythm.value(samplerSeqHitsKnob.value, samplerSeqLengthKnob.value);
+	~sapler1Seq = Pdef(
+	\sapler1Seq,
+	Pbind(
+		\type, \set,
+		\id, ~sampler1,
+		\instument, \sampler1,
+		\args, #[\t_gate],
+		\t_gate, Pseq(~sampler1Pattern, inf),
+));
+
+});
+
+g = ControlSpec.new(0, 16, \lin, 1);
+samplerSeqOffsetKnob = EZKnob(w,Rect(470,820,80,80),"offset",g,initVal:0);
+
+samplerSeqOffsetKnob.action_({
+	if(samplerSeqOffsetKnob.value < hi_hatSeqLengthKnob.value, {
+		~sampler1Pattern = ~sampler1Pattern.rotate(samplerSeqOffsetKnob.value.asInteger);
+		~sapler1Seq = Pdef(
+			\sapler1Seq,
+			Pbind(
+				\type, \set,
+				\id, ~sampler1,
+				\instument, \sampler1,
+				\args, #[\t_gate],
+				\t_gate, Pseq(~sampler1Pattern, inf),
+		));
+	});
+
+});
+
+/*--------------------------END SAMPLER--------------------------------------*/
 w.front;
 
 w.onClose={s.freeAll; ~kickSeq.stop; ~cowbellSeq.stop; ~snareSeq.stop; ~hi_hatSeq.stop;~kickSeq.remove; ~cowbellSeq.remove; ~snareSeq.remove; ~hi_hatSeq.remove};
