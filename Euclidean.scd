@@ -268,7 +268,8 @@ kickSeqOffsetKnob = EZKnob(w,Rect(470,10,80,80),"offset",g,initVal:0);
 
 kickSeqOffsetKnob.action_({
 	if(kickSeqOffsetKnob.value < kickSeqLengthKnob.value, {
-		~kickPattern = ~kickPattern.rotate(kickSeqOffsetKnob.value.asInteger);
+		var pattern;
+		pattern = ~kickPattern.rotate(kickSeqOffsetKnob.value.asInteger);
 		~kickSeq = Pdef(
 			\kickSeq,
 			Pbind(
@@ -276,7 +277,7 @@ kickSeqOffsetKnob.action_({
 				\id, ~kick,
 				\instument, \kick,
 				\args, #[\t_gate],
-				\t_gate, Pseq(~kickPattern, inf),
+				\t_gate, Pseq(pattern, inf),
 		));
 	});
 
@@ -351,7 +352,8 @@ snareSeqOffsetKnob = EZKnob(w,Rect(470,425,80,80),"offset",g,initVal:0);
 
 snareSeqOffsetKnob.action_({
 	if(snareSeqOffsetKnob.value < snareSeqLengthKnob.value, {
-		~snarePattern = ~snarePattern.rotate(snareSeqOffsetKnob.value.asInteger);
+		var pattern;
+		pattern = ~snarePattern.rotate(snareSeqOffsetKnob.value.asInteger);
 		~snareSeq = Pdef(
 			\snareSeq,
 			Pbind(
@@ -359,7 +361,7 @@ snareSeqOffsetKnob.action_({
 				\id, ~snare,
 				\instument, \snare,
 				\args, #[\t_gate],
-				\t_gate, Pseq(~snarePattern, inf),
+				\t_gate, Pseq(pattern, inf),
 		));
 	});
 
@@ -425,7 +427,8 @@ cowbellSeqOffsetKnob = EZKnob(w,Rect(470,240,80,80),"offset",g,initVal:0);
 
 cowbellSeqOffsetKnob.action_({
 	if(cowbellSeqOffsetKnob.value < cowbellSeqLengthKnob.value, {
-		~cowbellPattern = ~cowbellPattern.rotate(cowbellSeqOffsetKnob.value.asInteger);
+		var pattern;
+		pattern = ~cowbellPattern.rotate(cowbellSeqOffsetKnob.value.asInteger);
 		~cowbellSeq = Pdef(
 			\cowbellSeq,
 			Pbind(
@@ -433,7 +436,7 @@ cowbellSeqOffsetKnob.action_({
 				\id, ~cowbell,
 				\instument, \cowbell,
 				\args, #[\t_gate],
-				\t_gate, Pseq(~cowbellPattern, inf),
+				\t_gate, Pseq(pattern, inf),
 		));
 	});
 
@@ -508,7 +511,8 @@ hi_hatSeqOffsetKnob = EZKnob(w,Rect(470,610,80,80),"offset",g,initVal:0);
 
 hi_hatSeqOffsetKnob.action_({
 	if(hi_hatSeqOffsetKnob.value < hi_hatSeqLengthKnob.value, {
-		~hi_hatPattern = ~hi_hatPattern.rotate(hi_hatSeqOffsetKnob.value.asInteger);
+		var pattern;
+		pattern = ~hi_hatPattern.rotate(hi_hatSeqOffsetKnob.value.asInteger);
 		~cowbellSeq = Pdef(
 			\hi_hatSeq,
 			Pbind(
@@ -516,7 +520,7 @@ hi_hatSeqOffsetKnob.action_({
 				\id, ~hi_hat,
 				\instument, \hi_hat,
 				\args, #[\t_gate],
-				\t_gate, Pseq(~hi_hat, inf),
+				\t_gate, Pseq(pattern, inf),
 		));
 	});
 
