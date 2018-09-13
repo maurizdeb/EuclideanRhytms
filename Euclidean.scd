@@ -528,6 +528,5 @@ w.front;
 w.onClose={s.freeAll; ~kickSeq.stop; ~cowbellSeq.stop; ~snareSeq.stop; ~hi_hatSeq.stop;~kickSeq.remove; ~cowbellSeq.remove; ~snareSeq.remove; ~hi_hatSeq.remove};
 )
 
-
 /*-------------------------END GUI-----------------------------------------*/
 
