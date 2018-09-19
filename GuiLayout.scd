@@ -3,7 +3,7 @@ s.waitForBoot{(
 /*-----------------------SOUND SOURCES DEFINITIONS (SYNTHDEFS)--------------------------------*/
 
 //-KICK
-SynthDef("kick", {arg amp=0.5, freq=60, t_gate=0, decay=1, punch=0.5, pan=0.0;
+SynthDef("kick", {arg amp=0.8, freq=60, t_gate=0, decay=1, punch=0.5, pan=0.0;
 	var kick, ampEnv, impact;
 
 	ampEnv = EnvGen.kr(Env.adsr(0.01, 3, 0.5, decay));
@@ -57,7 +57,7 @@ SynthDef(\sampler, { arg buf, rate=1, amp=1, t_gate=0, pan=0.0;
 
 
 //-808_COWBELL
-SynthDef(\cowbell, { arg amp=0.4, t_gate=0, fund_freq=540, pan=0.0;
+SynthDef(\cowbell, { arg amp=0.3, t_gate=0, fund_freq=540, pan=0.0;
     var cow, env;
 
     cow = Pulse.ar( fund_freq * [ 1, 1.5085 ], [ 0.565, 0.445 ], [ 0.4, 0.6 ] ).distort;
@@ -79,11 +79,11 @@ SynthDef(\cowbell, { arg amp=0.4, t_gate=0, fund_freq=540, pan=0.0;
 
 //GENERAL GUI VARIABLES
 var w, w_width, w_height, screen_size,
-    sidebar_width, instView_width, instGrid,
+    sidebar_width, instView_width, instGrid, instScroll,
 //TEMPO VARIABLES
     tempoKnob,
 //INSTRUMENT VARIABLES
-    kickInst, snareInst, hihatInst, samplerInst, cowbellInst;
+    kickInst, snareInst, snareInst1, hihatInst, samplerInst, cowbellInst;
 
 
 w_width = 1024;
@@ -118,7 +118,7 @@ tempoKnob.action_({
 
 /*----------------------------------INSTRUMENTS GRID--------------------------------------------*/
 
-instGrid = CompositeView.new(w,Rect(0,1, instView_width, w_height) );
+instGrid = ScrollView.new(w,Rect(0,0, instView_width, w_height) );
 instGrid.background = Color.blue;
 instGrid.decorator = FlowLayout(Rect(0, 0, instView_width, w_height) ); // adds a Grid layout for all the instuments
 
@@ -132,7 +132,11 @@ snareInst = SnareInst.new;
 snareInst.soundSource = Synth("snare");
 snareInst.createView(instGrid, instView_width, w_width);
 
-hihatInst = HiHatInst.new;
+snareInst1 = SnareInst.new;
+snareInst1.soundSource = Synth("snare");
+snareInst1.createView(instGrid, instView_width, w_width);
+
+/*hihatInst = HiHatInst.new;
 hihatInst.soundSource = Synth("hi_hat");
 hihatInst.createView(instGrid, instView_width, w_width);
 
@@ -140,7 +144,7 @@ samplerInst = SamplerInst.new;
 samplerInst.soundSource = Synth("sampler");
 samplerInst.createView(instGrid, instView_width, w_width);
 
-/*cowbellInst = CowbellInst.new;
+cowbellInst = CowbellInst.new;
 cowbellInst.soundSource = Synth("cowbell");
 cowbellInst.createView(instGrid, instView_width, w_width);*/
 

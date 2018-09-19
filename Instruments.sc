@@ -119,8 +119,7 @@ KickInst : Inst {
 
 SnareInst : Inst {
 
-	var instView, snarePlayBtn, snareDecayKnob, snareToneKnob,
-	g;
+	var instView, snarePlayBtn, snareDecayKnob, snareToneKnob, snareSeq, g;
 
 	/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
 	createView{ | containter, instView_width, w_width |
@@ -139,7 +138,7 @@ SnareInst : Inst {
 		snarePlayBtn.action_({ arg butt;
 			butt.value.asBoolean.not.postln;
 			super.sequence = EuclideanRhythmGen.compute_rhythm(3,7);
-			~snareSeq.play(quant:4);
+			snareSeq.play(quant:4);
 		});
 
 		/* ---- Snare_Decay_Knob -----*/
@@ -164,15 +163,15 @@ SnareInst : Inst {
 
 	/*UPDATES THE SEQUENCE WHEN AN EUCLIDEAN PARAMETER IS UPDATED*/
 		updateSequence{ | sequence |
-			~snareSeq = Pdef(
-				\snareSeq,
+			snareSeq = Pdef(
+			"snareSeq" ++ super.soundSource.asString,
 				Pbind(
 					\type, \set,
 					\id, super.soundSource,
 					\instument, \snare,
 					\args, #[\t_gate],
 					\t_gate, Pseq(sequence, inf),
-			));
+		)).play(quant:4); //IL PROBLEMA E' QUI MA NON CAPISCO LA RAGIONE
 		}
 
 }
@@ -225,7 +224,7 @@ HiHatInst : Inst {
 	/*UPDATES THE SEQUENCE WHEN AN EUCLIDEAN PARAMETER IS UPDATED*/
 		updateSequence{ | sequence |
 			~hi_hatSeq = Pdef(
-				\hi_hatSeq,
+			\hi_hatSeq,
 				Pbind(
 					\type, \set,
 					\id, super.soundSource,
@@ -310,4 +309,54 @@ SamplerInst : Inst {
 			));
 		}
 
+}
+
+CowbellInst : Inst {
+
+	var instView, cowbellPlayBtn, cowbellToneKnob, g;
+
+		/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
+	createView{ | containter, instView_width, w_width |
+
+		instView = CompositeView.new(containter, Rect(0, 0, (instView_width/2) - 7, (w_width/3) - 7 ) );
+		instView.background = Color.grey;
+
+		super.initializeSequencerGui(instView);
+
+		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
+
+		/* ---- btnPlay -----*/
+		cowbellPlayBtn = Button(instView, Rect(20, 250, 210, 30));
+		cowbellPlayBtn.string = "cowbell play";
+
+		cowbellPlayBtn.action_({ arg butt;
+			butt.value.asBoolean.not.postln;
+			super.sequence = EuclideanRhythmGen.compute_rhythm(5,13);
+			~cowbellSeq.play(quant:4);
+		});
+
+		/* ---- cowbell_Tone_Knob -----*/
+		g = ControlSpec.new(0.83, 1.6, \lin);
+		cowbellToneKnob = EZKnob(instView,Rect(130,10,100,100),"tone",g,initVal:1);
+
+		cowbellToneKnob.action_({
+			super.soundSource.set(\fund_freq,240+(cowbellToneKnob.value*700));
+		});
+
+		/*-----------END INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
+
+	}
+
+	/*UPDATES THE SEQUENCE WHEN AN EUCLIDEAN PARAMETER IS UPDATED*/
+		updateSequence{ | sequence |
+			~cowbellSeq = Pdef(
+				\cowbellSeq,
+				Pbind(
+					\type, \set,
+					\id, super.soundSource,
+					\instument, \hi_hat,
+					\args, #[\t_gate],
+					\t_gate, Pseq(sequence, inf),
+			));
+		}
 }
