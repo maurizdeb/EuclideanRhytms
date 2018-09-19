@@ -1,4 +1,5 @@
 (
+s.waitForBoot{(
 /*-----------------------SOUND SOURCES DEFINITIONS (SYNTHDEFS)--------------------------------*/
 
 //-KICK
@@ -71,6 +72,7 @@ SynthDef(\cowbell, { arg amp=0.4, t_gate=0, fund_freq=540, pan=0.0;
     Out.ar( 0, Pan2.ar( cow, pan, amp ) );
 }).add;
 
+)}
 )
 
 (
@@ -143,14 +145,13 @@ cowbellInst.soundSource = Synth("cowbell");
 cowbellInst.createView(instGrid, instView_width, w_width);*/
 
 
-/*--------------------------------END INSTUMENTS GUI----------------------------------------------------*/
+/*--------------------------------END INSRTUMENTS GUI----------------------------------------------------*/
 
 //instGrid.decorator.nextLine;
 
 w.front;
 
-w.onClose={s.freeAll};
+w.onClose={s.freeAll; Pdef.removeAll};
 
 )
-
 

@@ -42,7 +42,9 @@ Inst {
 
 		seqOffsetKnob.action_({
 			if(seqOffsetKnob.value < seqLengthKnob.value, {
-				sequence = sequence.rotate(seqOffsetKnob.value.asInteger);
+				var zeroOffsetSeq;
+				zeroOffsetSeq = EuclideanRhythmGen.compute_rhythm(seqHitsKnob.value, seqLengthKnob.value);
+				sequence = zeroOffsetSeq.rotate(seqOffsetKnob.value.asInteger);
 				this.updateSequence(sequence);
 			});
 
@@ -271,7 +273,7 @@ SamplerInst : Inst {
 
 					var path = file[0];
 					// read a soundfile
-					//b = Buffer.read(s, path);
+					b = Buffer.read(Server.local, path);
 
 					b.bufnum.postln;
 
