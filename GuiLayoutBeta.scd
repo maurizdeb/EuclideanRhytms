@@ -91,7 +91,7 @@ prop_width = 0.53;
 prop_height = 0.88;
 w_width = (prop_width * screen_size.width).round;
 w_height = (prop_height * screen_size.height).round;
-sidebar_width = 0.2 * w_width;
+sidebar_width = (0.2 * w_width).round;
 instView_width = w_width - sidebar_width;
 
 w = Window("Euclidean AlgoRhythmic Sequencer", Rect(
@@ -109,7 +109,7 @@ w.alwaysOnTop = true;                         //For Developing purposes, it's be
 /*-----------------------------------------TEMPO------------------------------------------------*/
 
 g = ControlSpec.new(40, 240, \linear, 1);
-tempoKnob = EZKnob(w, Rect(870, 10, 100, 100),"bpm", g, initVal:120);
+tempoKnob = EZKnob(w, Rect((0.85*w_width).round, (0.01*w_height).round, (prop_height*w_height*0.105).round, (prop_height*0.105*w_height).round),"bpm", g, initVal:120);
 
 tempoKnob.action_({
 	var tmp = tempoKnob.value;
@@ -127,35 +127,35 @@ instGrid.decorator = FlowLayout(Rect(0, 0, instView_width, w_height) ); // adds 
 
 kickInst = KickInst.new;
 kickInst.soundSource = Synth("kick");
-kickInst.createView(instGrid, instView_width, w_width);
+kickInst.createView(instGrid, instView_width, w_width, w_height, prop_height);
 
 snareInst = SnareInst.new;
 snareInst.soundSource = Synth("snare");
-snareInst.createView(instGrid, instView_width, w_width);
+snareInst.createView(instGrid, instView_width, w_width, w_height, prop_height);
 
 snareInst1 = SnareInst.new;
 snareInst1.soundSource = Synth("snare");
-snareInst1.createView(instGrid, instView_width, w_width);
+snareInst1.createView(instGrid, instView_width, w_width, w_height, prop_height);
 
 hihatInst = HiHatInst.new;
 hihatInst.soundSource = Synth("hi_hat");
-hihatInst.createView(instGrid, instView_width, w_width);
+hihatInst.createView(instGrid, instView_width, w_width, w_height, prop_height);
 
 samplerInst = SamplerInst.new;
 samplerInst.soundSource = Synth("sampler");
-samplerInst.createView(instGrid, instView_width, w_width);
+samplerInst.createView(instGrid, instView_width, w_width, w_height, prop_height);
 
 cowbellInst = CowbellInst.new;
 cowbellInst.soundSource = Synth("cowbell");
-cowbellInst.createView(instGrid, instView_width, w_width);
+cowbellInst.createView(instGrid, instView_width, w_width, w_height, prop_height);
 
 cowbellInst2 = CowbellInst.new;
 cowbellInst.soundSource = Synth("cowbell");
-cowbellInst.createView(instGrid, instView_width, w_width);
+cowbellInst.createView(instGrid, instView_width, w_width, w_height, prop_height);
 
 cowbellInst3 = CowbellInst.new;
 cowbellInst.soundSource = Synth("cowbell");
-cowbellInst.createView(instGrid, instView_width, w_width);
+cowbellInst.createView(instGrid, instView_width, w_width, w_height, prop_height);
 
 
 /*--------------------------------END INSRTUMENTS GUI----------------------------------------------------*/
