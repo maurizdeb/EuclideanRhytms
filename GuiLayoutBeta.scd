@@ -150,12 +150,12 @@ cowbellInst.soundSource = Synth("cowbell");
 cowbellInst.createView(instGrid, instView_width, w_width, w_height, prop_height);
 
 cowbellInst2 = CowbellInst.new;
-cowbellInst.soundSource = Synth("cowbell");
-cowbellInst.createView(instGrid, instView_width, w_width, w_height, prop_height);
+cowbellInst2.soundSource = Synth("cowbell");
+cowbellInst2.createView(instGrid, instView_width, w_width, w_height, prop_height);
 
 cowbellInst3 = CowbellInst.new;
-cowbellInst.soundSource = Synth("cowbell");
-cowbellInst.createView(instGrid, instView_width, w_width, w_height, prop_height);
+cowbellInst3.soundSource = Synth("cowbell");
+cowbellInst3.createView(instGrid, instView_width, w_width, w_height, prop_height);
 
 
 /*--------------------------------END INSRTUMENTS GUI----------------------------------------------------*/

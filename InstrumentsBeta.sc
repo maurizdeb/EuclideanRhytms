@@ -15,10 +15,12 @@
 
 Inst {
 
-	var <>sequence, <>soundSource, seqHitsKnob, seqLengthKnob, seqOffsetKnob, g;
+	var <>sequence, <>soundSource, ampInst, seqHitsKnob, seqLengthKnob, seqOffsetKnob, g, muteBtn;
 
 	/*initializeSequencerGui INITIATES THE GUI RELATIVE TO A GENERIC INSTRUMENT*/
 	initializeSequencerGui { | instView, w_width, w_height, prop_height |
+
+		soundSource.get(\amp, {arg value; ampInst = value});
 
 		/*-----Euclidean Rhythm Controls--------*/
 		g = ControlSpec.new(1, 16, \lin, 1);
@@ -49,6 +51,18 @@ Inst {
 			});
 
 		});
+
+		/*--------MUTE BUTTON-----------*/
+
+		muteBtn = Button(instView, Rect((0.02*w_width).round, (0.21*w_height).round,(0.09*w_width).round, (0.03*w_height).round));
+		muteBtn.states_([
+			["mute", Color.black, Color.white],
+			["mute", Color.black, Color.red];
+		]);
+		muteBtn.background = Color.white;
+		muteBtn.action_({arg butt;
+			if(butt.value == 1, {soundSource.set(\amp, 0.0)},{soundSource.set(\amp, ampInst)});
+		});
 	}
 
 	/*UPDATES THE SEQUENCE, AFTER A CHANGE IN THE EUCLIDEAN RHYTHM PARAMETERS
@@ -62,7 +76,7 @@ Inst {
 
 KickInst : Inst {
 
-	var instView, kickPlayBtn, decayKnob, punchKnob,
+	var instView, kickTextBtn, decayKnob, punchKnob,
 	    g;
 
 	/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
@@ -75,15 +89,13 @@ KickInst : Inst {
 
 		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
 
-		kickPlayBtn = Button(instView, Rect((0.02*w_width).round, (0.26*w_height).round, (0.21*w_width).round, (0.03*w_height).round));
-		kickPlayBtn.string = "kik play";
+		kickTextBtn = StaticText(instView, Rect((0.02*w_width).round, (0.26*w_height).round, (0.21*w_width).round, (0.03*w_height).round));
+		kickTextBtn.string = "kick";
+		kickTextBtn.background = Color.yellow;
+		kickTextBtn.align_(\center);
 
-		kickPlayBtn.action_({ arg butt;
-			butt.value.asBoolean.not.postln;
-			super.sequence = EuclideanRhythmGen.compute_rhythm(2,8);
-			~kickSeq.play(quant:4);
+		/*----- Mute Btn Kick --------*/
 
-		});
 		/* ---- Kick_Decay_Knob -----*/
 		g = ControlSpec.new(0, 3, \lin);
 			decayKnob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round,(prop_height*w_height*0.105).round, (prop_height*0.105*w_height).round),"decay",g,initVal:0.5);
@@ -105,21 +117,21 @@ KickInst : Inst {
 
 	/*UPDATES THE SEQUENCE WHEN AN EUCLIDEAN PARAMETER IS UPDATED*/
 	updateSequence{ | sequence |
-		~kickSeq = Pdef(
-			\kickSeq,
+		Pdef(
+			\kickSeq ++ super.soundSource.asNodeID,
 			Pbind(
 				\type, \set,
-				\id, super.soundSource,
-				\instument, \kick,
+				\id, super.soundSource.asNodeID,
+				//\instument, \kick,
 				\args, #[\t_gate],
 				\t_gate, Pseq(sequence, inf),
-		));
+		)).play(quant:4);
 	}
 }
 
 SnareInst : Inst {
 
-	var instView, snarePlayBtn, snareDecayKnob, snareToneKnob, snareSeq, g;
+	var instView, snareTextBtn, snareDecayKnob, snareToneKnob, g;
 
 	/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
 	createView{ | containter, instView_width, w_width, w_height, prop_height |
@@ -131,15 +143,11 @@ SnareInst : Inst {
 
 		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
 
-		/* ---- btnPlay -----*/
-		snarePlayBtn = Button(instView, Rect((0.02*w_width).round, (0.26*w_height).round, (0.21*w_width).round, (0.03*w_height).round));
-		snarePlayBtn.string = "snr play";
-
-		snarePlayBtn.action_({ arg butt;
-			butt.value.asBoolean.not.postln;
-			super.sequence = EuclideanRhythmGen.compute_rhythm(3,7);
-			snareSeq.play(quant:4);
-		});
+		/* ---- btnText -----*/
+		snareTextBtn = StaticText(instView, Rect((0.02*w_width).round, (0.26*w_height).round, (0.21*w_width).round, (0.03*w_height).round));
+		snareTextBtn.string = "snare";
+		snareTextBtn.background = Color.yellow;
+		snareTextBtn.align_(\center);
 
 		/* ---- Snare_Decay_Knob -----*/
 		g = ControlSpec.new(0.05, 1, \lin);
@@ -163,22 +171,22 @@ SnareInst : Inst {
 
 	/*UPDATES THE SEQUENCE WHEN AN EUCLIDEAN PARAMETER IS UPDATED*/
 		updateSequence{ | sequence |
-			snareSeq = Pdef(
-			"snareSeq" ++ super.soundSource.asNodeID.asString,
+			Pdef(
+			\snareSeq ++ super.soundSource.asNodeID,
 				Pbind(
 					\type, \set,
 					\id, super.soundSource.asNodeID,
 					//\instument, \snare,
 					\args, #[\t_gate],
 					\t_gate, Pseq(sequence, inf),
-		)); //IL PROBLEMA E' QUI MA NON CAPISCO LA RAGIONE
+		)).play(quant:4); //IL PROBLEMA E' QUI MA NON CAPISCO LA RAGIONE
 		}
 
 }
 
 HiHatInst : Inst {
 
-	var instView, hi_hatPlayBtn, hi_hatDecayKnob, hi_hatToneKnob,
+	var instView, hi_hatTextBtn, hi_hatDecayKnob, hi_hatToneKnob,
 	g;
 
 	/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
@@ -191,15 +199,11 @@ HiHatInst : Inst {
 
 		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
 
-		/* ---- btnPlay -----*/
-		hi_hatPlayBtn = Button(instView, Rect((0.02*w_width).round, (0.26*w_height).round, (0.21*w_width).round, (0.03*w_height).round));
-		hi_hatPlayBtn.string = "hi-hat play";
-
-		hi_hatPlayBtn.action_({ arg butt;
-			butt.value.asBoolean.not.postln;
-			super.sequence = EuclideanRhythmGen.compute_rhythm(5,13);
-			~hi_hatSeq.play(quant:4);
-		});
+		/* ---- btnText -----*/
+		hi_hatTextBtn = StaticText(instView, Rect((0.02*w_width).round, (0.26*w_height).round, (0.21*w_width).round, (0.03*w_height).round));
+		hi_hatTextBtn.string = "hi-hat";
+		hi_hatTextBtn.background = Color.yellow;
+		hi_hatTextBtn.align = \center;
 
 		/* ---- Hi-hat_Decay_Knob -----*/
 		g = ControlSpec.new(0.05, 1, \lin);
@@ -223,22 +227,22 @@ HiHatInst : Inst {
 
 	/*UPDATES THE SEQUENCE WHEN AN EUCLIDEAN PARAMETER IS UPDATED*/
 		updateSequence{ | sequence |
-			~hi_hatSeq = Pdef(
-			\hi_hatSeq,
+			Pdef(
+			\hi_hatSeq ++ super.soundSource.asNodeID,
 				Pbind(
 					\type, \set,
-					\id, super.soundSource,
-					\instument, \hi_hat,
+					\id, super.soundSource.asNodeID,
+					//\instument, \hi_hat,
 					\args, #[\t_gate],
 					\t_gate, Pseq(sequence, inf),
-			));
+		)).play(quant:4);
 		}
 
 }
 
 SamplerInst : Inst {
 
-	var instView, samplerPlayBtn, samplerLoadBtn, sample_rate_knob, b,
+	var instView, samplerTextBtn, samplerLoadBtn, sample_rate_knob, b,
 	g;
 
 	/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
@@ -251,15 +255,11 @@ SamplerInst : Inst {
 
 		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
 
-		/* ---- btnPlay -----*/
-		samplerPlayBtn = Button(instView, Rect((0.02*w_width).round, (0.26*w_height).round, (0.21*w_width).round, (0.03*w_height).round));
-		samplerPlayBtn.string = "sample play";
-
-		samplerPlayBtn.action_({ arg butt;
-			butt.value.asBoolean.not.postln;
-			super.sequence = EuclideanRhythmGen.compute_rhythm(4,15);
-			~sapler1Seq.play(quant:4);
-		});
+		/* ---- btnText -----*/
+		samplerTextBtn = StaticText(instView, Rect((0.02*w_width).round, (0.26*w_height).round, (0.21*w_width).round, (0.03*w_height).round));
+		samplerTextBtn.string = "sampler";
+		samplerTextBtn.background = Color.yellow;
+		samplerTextBtn.align_(\center);
 
 		/* ---- btnLoad -----*/
 		samplerLoadBtn = Button(instView,Rect((0.02*w_width).round, (0.18*w_height).round, (0.21*w_width).round, (0.03*w_height).round));
@@ -277,7 +277,7 @@ SamplerInst : Inst {
 					b.bufnum.postln;
 
 					super.soundSource.set(\buf, b.bufnum);
-					super.soundSource.set(\t_gate, 1);
+					super.soundSource.set(\t_gate, 0);
 				},
 				{},
 				fileMode: 1, acceptMode: 0,
@@ -298,22 +298,22 @@ SamplerInst : Inst {
 
 	/*UPDATES THE SEQUENCE WHEN AN EUCLIDEAN PARAMETER IS UPDATED*/
 		updateSequence{ | sequence |
-			~sapler1Seq = Pdef(
-				\sapler1Seq,
+			Pdef(
+				\sapler1Seq ++ super.soundSource.asNodeID,
 				Pbind(
 					\type, \set,
-					\id, super.soundSource,
-					\instument, \sampler,
+					\id, super.soundSource.asNodeID,
+					//\instument, \sampler,
 					\args, #[\t_gate],
 					\t_gate, Pseq(sequence, inf),
-			));
+		)).play(quant:4);
 		}
 
 }
 
 CowbellInst : Inst {
 
-	var instView, cowbellPlayBtn, cowbellToneKnob, g;
+	var instView, cowbellTextBtn, cowbellToneKnob, g;
 
 		/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
 	createView{ | containter, instView_width, w_width, w_height, prop_height |
@@ -325,15 +325,11 @@ CowbellInst : Inst {
 
 		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
 
-		/* ---- btnPlay -----*/
-		cowbellPlayBtn = Button(instView, Rect((0.02*w_width).round, (0.26*w_height).round, (0.21*w_width).round, (0.03*w_height).round));
-		cowbellPlayBtn.string = "cowbell play";
-
-		cowbellPlayBtn.action_({ arg butt;
-			butt.value.asBoolean.not.postln;
-			super.sequence = EuclideanRhythmGen.compute_rhythm(5,13);
-			~cowbellSeq.play(quant:4);
-		});
+		/* ---- btnText -----*/
+		cowbellTextBtn = StaticText(instView, Rect((0.02*w_width).round, (0.26*w_height).round, (0.21*w_width).round, (0.03*w_height).round));
+		cowbellTextBtn.string = "cowbell";
+		cowbellTextBtn.background = Color.yellow;
+		cowbellTextBtn.align_(\center);
 
 		/* ---- cowbell_Tone_Knob -----*/
 		g = ControlSpec.new(0.83, 1.6, \lin);
@@ -349,14 +345,14 @@ CowbellInst : Inst {
 
 	/*UPDATES THE SEQUENCE WHEN AN EUCLIDEAN PARAMETER IS UPDATED*/
 		updateSequence{ | sequence |
-			~cowbellSeq = Pdef(
-				\cowbellSeq,
+			Pdef(
+				\cowbellSeq ++ super.soundSource.asNodeID,
 				Pbind(
 					\type, \set,
-					\id, super.soundSource,
-					\instument, \hi_hat,
+					\id, super.soundSource.asNodeID,
+					//\instument, \hi_hat,
 					\args, #[\t_gate],
 					\t_gate, Pseq(sequence, inf),
-			));
+		)).play(quant:4);
 		}
 }
