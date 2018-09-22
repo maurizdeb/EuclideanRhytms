@@ -3,7 +3,7 @@ s.waitForBoot{(
 /*-----------------------SOUND SOURCES DEFINITIONS (SYNTHDEFS)--------------------------------*/
 
 //-KICK
-SynthDef("kick", {arg amp=0.8, freq=60, t_gate=0, decay=1, punch=0.5, pan=0.0;
+SynthDef("kick", {arg amp=0.8, freq=60, t_gate=0, decay=1, punch=0.5, comp, pan=0.0;
 	var kick, ampEnv, impact;
 
 	ampEnv = EnvGen.kr(Env.adsr(0.01, 3, 0.5, decay));
@@ -11,6 +11,7 @@ SynthDef("kick", {arg amp=0.8, freq=60, t_gate=0, decay=1, punch=0.5, pan=0.0;
 	kick = SinOsc.ar(freq*impact);
 	kick = Mix(kick * ampEnv);
 	kick = LPF.ar(kick, 300);
+	kick = kick.tanh;
 
 	Out.ar(0, Pan2.ar( kick, pan, amp ));
 }).add;
