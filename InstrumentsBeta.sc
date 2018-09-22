@@ -15,16 +15,30 @@
 
 Inst {
 
-	var <>sequence, <>soundSource, ampInst, seqHitsKnob, seqLengthKnob, seqOffsetKnob, g, muteBtn;
+	classvar dim_knob_euclidean, dim_knob_sound;
+
+	var <>sequence, <>soundSource,
+	    <>instLabel, ampInst, muteBtn,
+	    seqHitsKnob, seqLengthKnob, seqOffsetKnob, g;
 
 	/*initializeSequencerGui INITIATES THE GUI RELATIVE TO A GENERIC INSTRUMENT*/
 	initializeSequencerGui { | instView, w_width, w_height, prop_height |
 
+		//saves the current amplitude value for the sound istance
 		soundSource.get(\amp, {arg value; ampInst = value});
+
+		//SETTING COMMON GUI DIMENSIONS
+		dim_knob_euclidean = (0.084*w_height).round;
+		dim_knob_sound = (prop_height*0.105*w_height).round;
+
+		//SETTING INSTRUMENT LABEL
+		instLabel = StaticText(instView, Rect((0.02*w_width).round, (0.26*w_height).round, (0.21*w_width).round, (0.03*w_height).round));
+		instLabel.background = Color.yellow;
+		instLabel.align_(\center);
 
 		/*-----Euclidean Rhythm Controls--------*/
 		g = ControlSpec.new(1, 16, \lin, 1);
-		seqLengthKnob = EZKnob(instView,Rect((0.26*w_width).round,(0.02*w_height).round,(0.084*w_height).round,(0.084*w_height).round),"length",g,initVal:16);
+		seqLengthKnob = EZKnob(instView,Rect((0.26*w_width).round,(0.02*w_height).round, dim_knob_euclidean, dim_knob_euclidean),"length",g,initVal:16);
 
 		seqLengthKnob.action_({
 			sequence = EuclideanRhythmGen.compute_rhythm(seqHitsKnob.value, seqLengthKnob.value);
@@ -32,7 +46,7 @@ Inst {
 		});
 
 		g = ControlSpec.new(0, 16, \lin, 1);
-		seqHitsKnob = EZKnob(instView,Rect((0.26*w_width).round,(0.105*w_height).round,(0.084*w_height).round,(0.084*w_height).round),"hits",g,initVal:0);
+		seqHitsKnob = EZKnob(instView,Rect((0.26*w_width).round,(0.105*w_height).round,dim_knob_euclidean, dim_knob_euclidean),"hits",g,initVal:0);
 
 		seqHitsKnob.action_({
 			sequence = EuclideanRhythmGen.compute_rhythm(seqHitsKnob.value, seqLengthKnob.value);
@@ -40,7 +54,7 @@ Inst {
 		});
 
 		g = ControlSpec.new(0, 16, \lin, 1);
-		seqOffsetKnob = EZKnob(instView,Rect((0.26*w_width).round,(0.19*w_height).round,(0.084*w_height).round,(0.084*w_height).round),"offset",g,initVal:0);
+		seqOffsetKnob = EZKnob(instView,Rect((0.26*w_width).round,(0.19*w_height).round, dim_knob_euclidean, dim_knob_euclidean),"offset",g,initVal:0);
 
 		seqOffsetKnob.action_({
 			if(seqOffsetKnob.value < seqLengthKnob.value, {
@@ -59,7 +73,6 @@ Inst {
 			["mute", Color.black, Color.white],
 			["mute", Color.black, Color.red];
 		]);
-		muteBtn.background = Color.white;
 		muteBtn.action_({arg butt;
 			if(butt.value == 1, {soundSource.set(\amp, 0.0)},{soundSource.set(\amp, ampInst)});
 		});
@@ -76,7 +89,7 @@ Inst {
 
 KickInst : Inst {
 
-	var instView, kickTextBtn, decayKnob, punchKnob,
+	var instView, kickTextBtn, decayKnob, punchKnob, compKnob,
 	    g;
 
 	/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
@@ -89,26 +102,29 @@ KickInst : Inst {
 
 		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
 
-		kickTextBtn = StaticText(instView, Rect((0.02*w_width).round, (0.26*w_height).round, (0.21*w_width).round, (0.03*w_height).round));
-		kickTextBtn.string = "kick";
-		kickTextBtn.background = Color.yellow;
-		kickTextBtn.align_(\center);
-
-		/*----- Mute Btn Kick --------*/
+		super.instLabel.string = "kick";
 
 		/* ---- Kick_Decay_Knob -----*/
 		g = ControlSpec.new(0, 3, \lin);
-			decayKnob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round,(prop_height*w_height*0.105).round, (prop_height*0.105*w_height).round),"decay",g,initVal:0.5);
+			decayKnob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round,dim_knob_sound, dim_knob_sound),"decay",g,initVal:0.5);
 
 		decayKnob.action_({
 			super.soundSource.set(\decay,decayKnob.value);
 		});
 		/* ---- Kick_Punch_Knob -----*/
 		g = ControlSpec.new(0, 1, \lin);
-			punchKnob = EZKnob(instView,Rect((0.13*w_width).round,(0.01*w_height).round,(prop_height*w_height*0.105).round, (prop_height*0.105*w_height).round),"punch",g,initVal:0.55);
+			punchKnob = EZKnob(instView,Rect((0.13*w_width).round,(0.01*w_height).round, dim_knob_sound, dim_knob_sound),"punch",g,initVal:0.55);
 
 		punchKnob.action_({
 			super.soundSource.set(\punch,punchKnob.value);
+		});
+
+		/* ---- Kick_Comp_Knob -----*/
+		g = ControlSpec.new(0.1, 1, \lin);
+			compKnob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.11*w_height).round, dim_knob_sound, dim_knob_sound),"comp",g,initVal:0.5);
+
+		compKnob.action_({
+			super.soundSource.set(\comp,compKnob.value);
 		});
 
 		/*-----------END INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
@@ -143,15 +159,11 @@ SnareInst : Inst {
 
 		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
 
-		/* ---- btnText -----*/
-		snareTextBtn = StaticText(instView, Rect((0.02*w_width).round, (0.26*w_height).round, (0.21*w_width).round, (0.03*w_height).round));
-		snareTextBtn.string = "snare";
-		snareTextBtn.background = Color.yellow;
-		snareTextBtn.align_(\center);
+		super.instLabel.string = "snare";
 
 		/* ---- Snare_Decay_Knob -----*/
 		g = ControlSpec.new(0.05, 1, \lin);
-		snareDecayKnob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round,(prop_height*w_height*0.105).round, (prop_height*0.105*w_height).round),"decay",g,initVal:0.1);
+		snareDecayKnob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round,dim_knob_sound, dim_knob_sound),"decay",g,initVal:0.1);
 
 		snareDecayKnob.action_({
 			super.soundSource.set(\decay,snareDecayKnob.value);
@@ -159,7 +171,7 @@ SnareInst : Inst {
 
 		/* ---- Snare_Tone_Knob -----*/
 		g = ControlSpec.new(0.7, 1.3, \lin);
-		snareToneKnob = EZKnob(instView,Rect((0.13*w_width).round,(0.01*w_height).round,(prop_height*w_height*0.105).round, (prop_height*0.105*w_height).round),"tone",g,initVal:1);
+		snareToneKnob = EZKnob(instView,Rect((0.13*w_width).round,(0.01*w_height).round, dim_knob_sound, dim_knob_sound),"tone",g,initVal:1);
 
 		snareToneKnob.action_({
 			super.soundSource.set(\tone,snareToneKnob.value);
@@ -199,15 +211,11 @@ HiHatInst : Inst {
 
 		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
 
-		/* ---- btnText -----*/
-		hi_hatTextBtn = StaticText(instView, Rect((0.02*w_width).round, (0.26*w_height).round, (0.21*w_width).round, (0.03*w_height).round));
-		hi_hatTextBtn.string = "hi-hat";
-		hi_hatTextBtn.background = Color.yellow;
-		hi_hatTextBtn.align = \center;
+		super.instLabel.string = "hi-hat";
 
 		/* ---- Hi-hat_Decay_Knob -----*/
 		g = ControlSpec.new(0.05, 1, \lin);
-		hi_hatDecayKnob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round,(prop_height*w_height*0.105).round, (prop_height*0.105*w_height).round),"decay",g,initVal:0.1);
+		hi_hatDecayKnob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round, dim_knob_sound, dim_knob_sound),"decay",g,initVal:0.1);
 
 		hi_hatDecayKnob.action_({
 			super.soundSource.set(\opening,hi_hatDecayKnob.value);
@@ -215,7 +223,7 @@ HiHatInst : Inst {
 
 		/* ---- Hi-hat_Tone_Knob -----*/
 		g = ControlSpec.new(0.83, 1.6, \lin);
-		hi_hatToneKnob = EZKnob(instView,Rect((0.13*w_width).round,(0.01*w_height).round,(prop_height*w_height*0.105).round, (prop_height*0.105*w_height).round),"tone",g,initVal:1);
+		hi_hatToneKnob = EZKnob(instView,Rect((0.13*w_width).round,(0.01*w_height).round, dim_knob_sound, dim_knob_sound),"tone",g,initVal:1);
 
 		hi_hatToneKnob.action_({
 			super.soundSource.set(\freq,hi_hatToneKnob.value);
@@ -255,11 +263,7 @@ SamplerInst : Inst {
 
 		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
 
-		/* ---- btnText -----*/
-		samplerTextBtn = StaticText(instView, Rect((0.02*w_width).round, (0.26*w_height).round, (0.21*w_width).round, (0.03*w_height).round));
-		samplerTextBtn.string = "sampler";
-		samplerTextBtn.background = Color.yellow;
-		samplerTextBtn.align_(\center);
+		super.instLabel.string = "sampler";
 
 		/* ---- btnLoad -----*/
 		samplerLoadBtn = Button(instView,Rect((0.02*w_width).round, (0.18*w_height).round, (0.21*w_width).round, (0.03*w_height).round));
@@ -286,7 +290,7 @@ SamplerInst : Inst {
 
 		/* ---- sample rate knob -----*/
 		g = ControlSpec.new(0, 1, \lin);
-		sample_rate_knob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round,(prop_height*w_height*0.105).round, (prop_height*0.105*w_height).round),"rate", g,initVal:0.5);
+		sample_rate_knob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round, dim_knob_sound, dim_knob_sound),"rate", g,initVal:0.5);
 
 		sample_rate_knob.action_({
 			super.soundSource.set(\rate,sample_rate_knob.value);
@@ -325,15 +329,11 @@ CowbellInst : Inst {
 
 		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
 
-		/* ---- btnText -----*/
-		cowbellTextBtn = StaticText(instView, Rect((0.02*w_width).round, (0.26*w_height).round, (0.21*w_width).round, (0.03*w_height).round));
-		cowbellTextBtn.string = "cowbell";
-		cowbellTextBtn.background = Color.yellow;
-		cowbellTextBtn.align_(\center);
+		super.instLabel.string = "cowbell";
 
 		/* ---- cowbell_Tone_Knob -----*/
 		g = ControlSpec.new(0.83, 1.6, \lin);
-		cowbellToneKnob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round,(prop_height*w_height*0.105).round, (prop_height*0.105*w_height).round),"tone",g,initVal:1);
+		cowbellToneKnob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round, dim_knob_sound, dim_knob_sound),"tone",g,initVal:1);
 
 		cowbellToneKnob.action_({
 			super.soundSource.set(\fund_freq,240+(cowbellToneKnob.value*700));
