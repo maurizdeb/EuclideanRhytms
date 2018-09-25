@@ -1,8 +1,6 @@
 (
 s.waitForBoot{(
 /*-----------------------SOUND SOURCES DEFINITIONS (SYNTHDEFS)--------------------------------*/
-	x = 0;
-
 	//-KICK
 	/*SynthDef("kick", {arg amp=0.2, freq=60, t_gate=0, decay=1, punch=0.5, level = 1, pan=0.0;
 
@@ -22,12 +20,11 @@ s.waitForBoot{(
 	}).add;*/
 
 
-	SynthDef(\kick, {
-		|out = 0, pan = 0, amp = 0.2, punch = 0.5, decay = 0.3|
-		var body, bodyFreq, bodyAmp;
-		var pop, popFreq, popAmp;
-		var click, clickAmp;
-		var snd;
+	SynthDef(\kick, { arg out = 0, pan = 0, amp = 0.2, punch = 0.5, decay = 0.3, mute=1;
+		var body, bodyFreq, bodyAmp,
+		    pop, popFreq, popAmp,
+		    click, clickAmp,
+		    kick;
 
 		// body starts midrange, quickly drops down to low freqs, and trails off
 		bodyFreq = EnvGen.ar(Env([522*punch, 120, 51], [0.035, 0.08], curve: \exp));
@@ -42,28 +39,28 @@ s.waitForBoot{(
 		clickAmp = EnvGen.ar(Env.perc(0.001, 0.01)) * 0.15;
 		click = LPF.ar(Formant.ar(910, 4760, 2110), 3140) * clickAmp;
 
-		snd = body + pop + click;
-		snd = snd.tanh;
+		kick = body + pop + click;
+		kick = kick.tanh;
 
-		Out.ar(out, Pan2.ar(snd, pan, amp));
+		Out.ar(out, Pan2.ar(kick, pan, amp*mute));
 	}).add;
 
 
 
 	//-SNARE
-	SynthDef(\snare, {arg t_gate=0, tone=1,  decay=0.1, amp=0.2, pan=0.0, level = 1;
+	SynthDef(\snare, {arg t_gate=0, tone=1,  decay=0.1, amp=0.2, pan=0.0, mute=1;
 		var ampEnv, snare;
 
 		ampEnv = EnvGen.kr(Env.perc(0.001, decay, 1, -5), doneAction:2);
 		snare = SinOsc.ar(tone*120) - WhiteNoise.ar(0.5, 0.5);
 		snare = Mix( snare * ampEnv);
 
-		Out.ar(0, Pan2.ar( snare, pan, amp*level ) );
+		Out.ar(0, Pan2.ar( snare, pan, amp*mute ) );
 	}).add;
 
 
 	//HI-HAT
-	SynthDef(\hi_hat, { arg t_gate = 0, opening = 0.2, amp = 0.2, freq = 1, level = 1, pan=0.0;
+	SynthDef(\hi_hat, { arg t_gate = 0, opening = 0.2, amp = 0.2, freq = 1, pan=0.0, mute=1;
 
 		var hat, ampEnv;
 
@@ -74,24 +71,24 @@ s.waitForBoot{(
 
 		hat = (hat * ampEnv);
 
-		Out.ar(0, Pan2.ar(hat, pan, amp*level) );
+		Out.ar(0, Pan2.ar(hat, pan, amp*mute) );
 	}).add;
 
 
 	//SAMPLER
-	SynthDef(\sampler, { arg buf, rate=1, amp=0.2, t_gate=0, pan=0.0, level =1;
+	SynthDef(\sampler, { arg buf, rate=1, amp=0.2, t_gate=0, pan=0.0, mute=1;
 
 		var sample;
 
 		sample = PlayBuf.ar(2, buf, rate, 1, doneAction:2);
 
-		Out.ar(0, Pan2.ar(sample, pan, amp*level));
+		Out.ar(0, Pan2.ar(sample, pan, amp*mute));
 
 	}).add;
 
 
 	//-808_COWBELL
-	SynthDef(\cowbell, { arg amp=0.2, t_gate=0, fund_freq=540, pan=0.0, level = 1;
+	SynthDef(\cowbell, { arg amp=0.2, t_gate=0, fund_freq=540, pan=0.0, mute=1;
 		var cow, env;
 
 		cow = Pulse.ar( fund_freq * [ 1, 1.5085 ], [ 0.565, 0.445 ], [ 0.4, 0.6 ] ).distort;
@@ -103,7 +100,7 @@ s.waitForBoot{(
 		cow = Mix( cow * env );
 		cow = BPF.ar( cow, fund_freq * 2, 1.808 );
 
-		Out.ar( 0, Pan2.ar( cow, pan, amp*level ) );
+		Out.ar( 0, Pan2.ar( cow, pan, amp*mute ) );
 	}).add;
 )}
 )
@@ -116,7 +113,7 @@ var w, w_width, w_height, screen_size, prop_height, prop_width,
 //TEMPO VARIABLES
     tempoKnob,
 //INSTRUMENT VARIABLES
-    kickInst, snareInst, snareInst1, hihatInst, samplerInst, cowbellInst, cowbellInst2, cowbellInst3;
+    slot1, slot2, slot3, slot4, slot5, slot6, slot7, slot8;
 
 screen_size = Window.screenBounds;
 
@@ -153,66 +150,20 @@ tempoKnob.action_({
 /*----------------------------------INSTRUMENTS GRID--------------------------------------------*/
 
 instGrid = ScrollView.new(w,Rect(0,0, instView_width, w_height) );
-instGrid.background = Color.blue;
+instGrid.background = Color.fromHexString("4BA4B8");
 instGrid.decorator = FlowLayout(Rect(0, 0, instView_width, w_height) ); // adds a Grid layout for all the instuments
 
 /*-----------------------------------INSTUMENTS GUI----------------------------------------------------*/
 
-x = x+1;
-kickInst = KickInst.new;
-//kickInst.soundSource = Pdef(x.asString);
-kickInst.soundSynth = 0.2;
-kickInst.pdefNum = x;
-kickInst.createView(instGrid, instView_width, w_width, w_height, prop_height);
+slot1 = TemplateInstGUI.new.create( instGrid, instView_width, w_width, w_height, prop_height );
+slot2 = TemplateInstGUI.new.create( instGrid, instView_width, w_width, w_height, prop_height );
+slot3 = TemplateInstGUI.new.create( instGrid, instView_width, w_width, w_height, prop_height );
+slot4 = TemplateInstGUI.new.create( instGrid, instView_width, w_width, w_height, prop_height );
+slot5 = TemplateInstGUI.new.create( instGrid, instView_width, w_width, w_height, prop_height );
+slot6 = TemplateInstGUI.new.create( instGrid, instView_width, w_width, w_height, prop_height );
+slot7 = TemplateInstGUI.new.create( instGrid, instView_width, w_width, w_height, prop_height );
+slot8 = TemplateInstGUI.new.create( instGrid, instView_width, w_width, w_height, prop_height );
 
-x = x+1;
-snareInst = SnareInst.new;
-snareInst.pdefNum = x;
-snareInst.soundSynth = 0.2;
-//snareInst.soundSource = Pdefn(x.asString, Pbind(\instrument, \snare, \level, 0)).play(quant:4);
-snareInst.createView(instGrid, instView_width, w_width, w_height, prop_height);
-
-x = x+1;
-snareInst1 = SnareInst.new;
-snareInst1.pdefNum = x;
-snareInst1.soundSynth = 0.2;
-//snareInst1.soundSource = Pdef(x.asString, Pbind(\instrument, \snare, \level, 0)).play(quant:4);
-snareInst1.createView(instGrid, instView_width, w_width, w_height, prop_height);
-
-x = x+1;
-hihatInst = HiHatInst.new;
-hihatInst.pdefNum = x;
-hihatInst.soundSynth = 0.2;
-//hihatInst.soundSource = Pdef(x.asString);
-hihatInst.createView(instGrid, instView_width, w_width, w_height, prop_height);
-
-x=x+1;
-samplerInst = SamplerInst.new;
-samplerInst.pdefNum = x;
-samplerInst.soundSynth = 0.2;
-//samplerInst.soundSource = Pdef(x.asString);
-samplerInst.createView(instGrid, instView_width, w_width, w_height, prop_height);
-
-x = x+1;
-cowbellInst = CowbellInst.new;
-cowbellInst.pdefNum = x;
-cowbellInst.soundSynth = 0.2;
-//cowbellInst.soundSource = Pdef(x.asString);
-cowbellInst.createView(instGrid, instView_width, w_width, w_height, prop_height);
-
-x = x+1;
-cowbellInst2 = CowbellInst.new;
-cowbellInst2.pdefNum = x;
-cowbellInst2.soundSynth = 0.2;
-//cowbellInst2.soundSource = Pdef(x.asString);
-cowbellInst2.createView(instGrid, instView_width, w_width, w_height, prop_height);
-
-x = x+1;
-cowbellInst3 = CowbellInst.new;
-cowbellInst3.pdefNum = x;
-cowbellInst3.soundSynth = 0.2;
-//cowbellInst3.soundSource = Pdef(x.asString);
-cowbellInst3.createView(instGrid, instView_width, w_width, w_height, prop_height);
 
 
 /*--------------------------------END INSRTUMENTS GUI----------------------------------------------------*/
@@ -224,3 +175,4 @@ w.front;
 w.onClose={s.freeAll; Pdef.removeAll};
 
 )
+
