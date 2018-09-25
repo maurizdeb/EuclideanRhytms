@@ -9,23 +9,78 @@
 
     }*/
 
-//Class variables are values that are shared by all objects in the class
-	//USE THIS VARS FOR GENERAL GUI LAYOUT e.g.
-	//classvar seq_length_knob_pos
+TemplateInstGUI{
+
+	var m, instView;
+
+	create{ | instGrid, instView_width, w_width, w_height, prop_height |
+
+		//CREATES THE CONTAINER
+		instView = CompositeView.new(instGrid, Rect(0, 0, (instView_width/2) - 7, (w_width/3) - 7 ) );
+		instView.background = Color.grey;
+
+		//CREATES THE MENU
+		m = PopUpMenu(instView, Rect(0, 0, 180, 20));
+		m.items = InstFactory.getInstuments;
+
+		m.background_(Color.fromHexString("30ECF8"));  // only changes the look of displayed item
+		m.stringColor_(Color.black);   // only changes the look of displayed item
+		m.font_(Font("Courier", 13));   // only changes the look of displayed item
+
+		m.action = { arg menu;
+			var inst = InstFactory.getIstance(menu.item);
+			inst.createView(instView, instView_width, w_width, w_height, prop_height);
+			//[menu.value, menu.item].postln;
+		};
+	}
+}
+
+InstFactory {
+
+	classvar <>instrumentId=500;
+
+	*getIstance{ | name |
+
+		var instance = case
+
+		{ name == "kick" }   { instance = KickInst.new}
+
+		{ name == "kick808" } { instance = nil }
+
+		{ name == "snare" } { instance = SnareInst.new }
+
+		{ name == "hi-hat" } { instance = HiHatInst.new }
+
+		{ name == "sampler" }   { instance = SamplerInst.new }
+
+		{ name == "cowbell" }   { instance = CowbellInst.new };
+
+		instance.pdefId = this.prGenIstrumetId;
+		^instance;
+
+	}
+
+	*getInstuments {
+		^["kick", "kick808", "snare", "hi-hat", "sampler", "cowbell"];
+	}
+
+	//PRIVATE METHOD SHOULD NOT BE CALLED FROM OUTSIDE
+	*prGenIstrumetId{
+		this.instrumentId = this.instrumentId + 1;
+		^this.instrumentId;
+	}
+}
 
 Inst {
 
 	classvar dim_knob_euclidean, dim_knob_sound;
 
-	var <>sequence, <>soundSource, <>pdefNum, <>soundSynth,
-	    <>instLabel, ampInst, muteBtn,
+	var <>sequence, <>soundSource, <>pdefId,
+	    <>instLabel, muteBtn, closeBtn,
 	    seqHitsKnob, seqLengthKnob, seqOffsetKnob, g;
 
 	/*initializeSequencerGui INITIATES THE GUI RELATIVE TO A GENERIC INSTRUMENT*/
 	initializeSequencerGui { | instView, w_width, w_height, prop_height |
-
-		//saves the current amplitude value for the sound istance
-		//soundSource.get(\amp, {arg value; ampInst = value});
 
 		//SETTING COMMON GUI DIMENSIONS
 		dim_knob_euclidean = (0.084*w_height).round;
@@ -74,7 +129,17 @@ Inst {
 			["mute", Color.black, Color.red];
 		]);
 		muteBtn.action_({arg butt;
-			if(butt.value == 1, {soundSource.set(\amp, 0.0)},{soundSource.set(\amp, soundSynth)});
+			if(butt.value == 1, {soundSource.set(\mute, 0)},{soundSource.set(\mute, 1)});
+		});
+
+		/*---------CLOSE BUTTON-----------------*/
+		closeBtn = Button(instView, Rect(0, 0, (0.009*w_height).round, (0.009*w_height).round));
+		closeBtn.states_([
+			["X", Color.white, Color.red];
+		]);
+		closeBtn.action_({
+			instView.remove;
+			soundSource.remove;
 		});
 	}
 
@@ -104,10 +169,9 @@ KickInst : Inst {
 
 		super.instLabel.string = "kick";
 
-		super.soundSource = Pdef(super.pdefNum, //va fatta partire una sola volta questa merda di pdef
+		super.soundSource = Pdef(super.pdefId,
 			Pbind(
 				\instrument, \kick,
-				//\level, Pseq([0,0,0,0], inf)
 				\noteOrRest, Pif((Pseq([0,0,0,0], inf))> 0, 1, Rest)
 			)
 		).play(quant:4);
@@ -134,10 +198,9 @@ KickInst : Inst {
 	/*UPDATES THE SEQUENCE WHEN AN EUCLIDEAN PARAMETER IS UPDATED*/
 	updateSequence{ | sequence |
 		var seq = Pseq(sequence, inf);
-		Pdef(super.pdefNum, //va fatta partire una sola volta questa merda di pdef
+		Pdef(super.pdefId,
 			Pbind(
 				\instrument, \kick,
-				//\level, Pseq(sequence, inf)
 				\noteOrRest, Pif(seq > 0, 1, Rest())
 			)
 		);
@@ -160,7 +223,7 @@ SnareInst : Inst {
 
 		super.instLabel.string = "snare";
 
-		super.soundSource = Pdef(super.pdefNum,
+		super.soundSource = Pdef(super.pdefId,
 			Pbind(
 				\instrument, \snare,
 				//\level, Pseq([0,0,0,0], inf)
@@ -191,10 +254,9 @@ SnareInst : Inst {
 	/*UPDATES THE SEQUENCE WHEN AN EUCLIDEAN PARAMETER IS UPDATED*/
 		updateSequence{| sequence |
 		var seq = Pseq(sequence, inf);
-		Pdef(super.pdefNum,
+		Pdef(super.pdefId,
 			Pbind(
 				\instrument, \snare,
-				//\level, Pseq(sequence, inf)
 				\noteOrRest, Pif(seq > 0, 1, Rest())
 			)
 		);
@@ -219,7 +281,7 @@ HiHatInst : Inst {
 
 		super.instLabel.string = "hi-hat";
 
-		super.soundSource = Pdef(super.pdefNum, //va fatta partire una sola volta questa merda di pdef
+		super.soundSource = Pdef(super.pdefId, //va fatta partire una sola volta questa merda di pdef
 			Pbind(
 				\instrument, \hi_hat,
 				\noteOrRest, Pif((Pseq([0,0,0,0], inf))>0,1,Rest)
@@ -249,10 +311,9 @@ HiHatInst : Inst {
 	/*UPDATES THE SEQUENCE WHEN AN EUCLIDEAN PARAMETER IS UPDATED*/
 		updateSequence{ | sequence |
 		var seq = Pseq(sequence, inf);
-		Pdef(super.pdefNum, //va fatta partire una sola volta questa merda di pdef
+		Pdef(super.pdefId,
 			Pbind(
 				\instrument, \hi_hat,
-				//\level, Pseq(sequence, inf)
 				\noteOrRest, Pif(seq>0,1,Rest())
 			)
 		);
@@ -293,10 +354,9 @@ SamplerInst : Inst {
 					b.bufnum.postln;
 
 					super.soundSource.set(\buf, b.bufnum);
-					super.soundSource = Pdef(super.pdefNum, //va fatta partire una sola volta questa merda di pdef
+					super.soundSource = Pdef(super.pdefId,
 						Pbind(
 							\instrument, \sampler,
-							//\level, Pseq([0,0,0,0], inf)
 							\noteOrRest, Pif((Pseq([0,0,0,0], inf))>0,1,Rest)
 						)
 					).play(quant:4);
@@ -323,13 +383,9 @@ SamplerInst : Inst {
 		updateSequence{ | sequence |
 		var seq = Pseq(sequence, inf);
 		super.soundSource = Pdef(
-			super.pdefNum,
+			super.pdefId,
 			Pbind(
-				//\type, \set,
-				//\id, super.soundSource.asNodeID,
 				\instrument, \sampler,
-				//\args, #[\t_gate],
-				//\level, Pseq(sequence, inf),
 				\noteOrRest, Pif(seq>0,1,Rest())
 		));
 		}
@@ -352,10 +408,9 @@ CowbellInst : Inst {
 
 		super.instLabel.string = "cowbell";
 
-		super.soundSource = Pdef(super.pdefNum, //va fatta partire una sola volta questa merda di pdef
+		super.soundSource = Pdef(super.pdefId,
 			Pbind(
 				\instrument, \cowbell,
-				//\level, Pseq([0,0,0,0], inf)
 				\noteOrRest, Pif((Pseq([0,0,0,0], inf))>0, 1, Rest)
 			)
 		).play(quant:4);
@@ -375,10 +430,9 @@ CowbellInst : Inst {
 	/*UPDATES THE SEQUENCE WHEN AN EUCLIDEAN PARAMETER IS UPDATED*/
 		updateSequence{ | sequence |
 		var seq = Pseq(sequence, inf);
-		Pdef(super.pdefNum, //va fatta partire una sola volta questa merda di pdef
+		Pdef(super.pdefId,
 			Pbind(
 				\instrument, \cowbell,
-				//\level, Pseq(sequence, inf)
 				\noteOrRest, Pif(seq>0, 1, Rest())
 			)
 		);
