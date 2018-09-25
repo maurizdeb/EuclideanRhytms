@@ -80,7 +80,7 @@ s.waitForBoot{(
 
 		var sample;
 
-		sample = PlayBuf.ar(2, buf, rate, t_gate);
+		sample = PlayBuf.ar(2, buf, rate, doneAction:2);
 
 		Out.ar(0, Pan2.ar(sample, pan, amp*mute));
 
