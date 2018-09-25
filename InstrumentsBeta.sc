@@ -20,7 +20,7 @@ TemplateInstGUI{
 		instView.background = Color.grey;
 
 		//CREATES THE MENU
-		m = PopUpMenu(instView, Rect(0, 0, 180, 20));
+		m = PopUpMenu(instView, Rect(0, 0, (0.25*w_width).round, (0.02*w_height).round));
 		m.items = InstFactory.getInstuments;
 
 		m.background_(Color.fromHexString("30ECF8"));  // only changes the look of displayed item
@@ -45,7 +45,7 @@ InstFactory {
 
 		{ name == "kick" }   { instance = KickInst.new}
 
-		{ name == "kick808" } { instance = nil }
+		//{ name == "kick808" } { instance = nil }
 
 		{ name == "snare" } { instance = SnareInst.new }
 
@@ -61,7 +61,7 @@ InstFactory {
 	}
 
 	*getInstuments {
-		^["kick", "kick808", "snare", "hi-hat", "sampler", "cowbell"];
+		^["Select Instrument","kick", /*"kick808",*/ "snare", "hi-hat", "sampler", "cowbell"];
 	}
 
 	//PRIVATE METHOD SHOULD NOT BE CALLED FROM OUTSIDE
@@ -76,7 +76,7 @@ Inst {
 	classvar dim_knob_euclidean, dim_knob_sound;
 
 	var <>sequence, <>soundSource, <>pdefId,
-	    <>instLabel, muteBtn, closeBtn,
+	    <>instLabel, muteBtn, <>closeBtn,
 	    seqHitsKnob, seqLengthKnob, seqOffsetKnob, g;
 
 	/*initializeSequencerGui INITIATES THE GUI RELATIVE TO A GENERIC INSTRUMENT*/
@@ -133,19 +133,23 @@ Inst {
 		});
 
 		/*---------CLOSE BUTTON-----------------*/
-		closeBtn = Button(instView, Rect(0, 0, (0.009*w_height).round, (0.009*w_height).round));
+		closeBtn = Button(instView, Rect(0, 0, (0.01*w_height).round, (0.01*w_height).round));
 		closeBtn.states_([
 			["X", Color.white, Color.red];
 		]);
 		closeBtn.action_({
 			instView.remove;
-			soundSource.remove;
+			this.removePdef;
 		});
 	}
 
 	/*UPDATES THE SEQUENCE, AFTER A CHANGE IN THE EUCLIDEAN RHYTHM PARAMETERS
 	TEMPLATE METHOD PATTERN: REAL IMPLEMENTATION IN SUBCLASSES*/
 	updateSequence{ | sequence |
+		^nil
+	}
+
+	removePdef{
 		^nil
 	}
 
@@ -205,6 +209,10 @@ KickInst : Inst {
 			)
 		);
 	}
+
+	removePdef{
+		Pdef(super.pdefId).remove;
+	}
 }
 
 SnareInst : Inst {
@@ -262,6 +270,9 @@ SnareInst : Inst {
 		);
 		}
 
+	removePdef{
+		Pdef(super.pdefId).remove;
+	}
 }
 
 HiHatInst : Inst {
@@ -319,6 +330,10 @@ HiHatInst : Inst {
 		);
 		}
 
+	removePdef{
+		Pdef(super.pdefId).remove;
+	}
+
 }
 
 SamplerInst : Inst {
@@ -368,7 +383,7 @@ SamplerInst : Inst {
 		});
 
 		/* ---- sample rate knob -----*/
-		g = ControlSpec.new(0, 1, \lin);
+		g = ControlSpec.new(0, 3, \lin);
 		sample_rate_knob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round, dim_knob_sound, dim_knob_sound),"rate", g,initVal:0.5);
 
 		sample_rate_knob.action_({
@@ -389,6 +404,10 @@ SamplerInst : Inst {
 				\noteOrRest, Pif(seq>0,1,Rest())
 		));
 		}
+
+	removePdef{
+		Pdef(super.pdefId).remove;
+	}
 
 }
 
@@ -420,7 +439,7 @@ CowbellInst : Inst {
 		cowbellToneKnob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round, dim_knob_sound, dim_knob_sound),"tone",g,initVal:1);
 
 		cowbellToneKnob.action_({
-			super.soundSource.set(\fund_freq,240+(cowbellToneKnob.value*700));
+			super.soundSource.set(\fund_freq,240+(cowbellToneKnob.value*300));
 		});
 
 		/*-----------END INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
@@ -437,4 +456,8 @@ CowbellInst : Inst {
 			)
 		);
 		}
+
+	removePdef{
+		Pdef(super.pdefId).remove;
+	}
 }

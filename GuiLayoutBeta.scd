@@ -80,7 +80,7 @@ s.waitForBoot{(
 
 		var sample;
 
-		sample = PlayBuf.ar(2, buf, rate, 1, doneAction:2);
+		sample = PlayBuf.ar(2, buf, rate, t_gate);
 
 		Out.ar(0, Pan2.ar(sample, pan, amp*mute));
 
@@ -109,7 +109,7 @@ s.waitForBoot{(
 
 //GENERAL GUI VARIABLES
 var w, w_width, w_height, screen_size, prop_height, prop_width,
-    sidebar_width, instView_width, instGrid, instScroll,
+    sidebar_width, instView_width, instGrid, instScroll, buttonTemplateAdd,
 //TEMPO VARIABLES
     tempoKnob,
 //INSTRUMENT VARIABLES
@@ -152,6 +152,14 @@ tempoKnob.action_({
 instGrid = ScrollView.new(w,Rect(0,0, instView_width, w_height) );
 instGrid.background = Color.fromHexString("4BA4B8");
 instGrid.decorator = FlowLayout(Rect(0, 0, instView_width, w_height) ); // adds a Grid layout for all the instuments
+
+/*------------------------------------Button Instrument Template--------------------------------*/
+
+buttonTemplateAdd = Button(w, Rect((0.81*w_width).round, (0.12*w_height).round, (0.18*w_width).round, (0.02*w_height).round));
+buttonTemplateAdd.string = "Add instrument";
+buttonTemplateAdd.action_({
+	TemplateInstGUI.new.create( instGrid, instView_width, w_width, w_height, prop_height );
+});
 
 /*-----------------------------------INSTUMENTS GUI----------------------------------------------------*/
 
