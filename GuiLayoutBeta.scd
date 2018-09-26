@@ -80,7 +80,7 @@ s.waitForBoot{(
 
 		var sample;
 
-		sample = PlayBuf.ar(2, buf, rate, doneAction:2);
+		sample = PlayBuf.ar(2, buf, rate, t_gate);
 
 		Out.ar(0, Pan2.ar(sample, pan, amp*mute));
 
@@ -104,6 +104,7 @@ s.waitForBoot{(
 	}).add;
 )}
 )
+
 
 (
 
@@ -183,4 +184,6 @@ w.front;
 w.onClose={s.freeAll; Pdef.removeAll};
 
 )
+
+
 
