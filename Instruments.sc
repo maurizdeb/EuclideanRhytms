@@ -9,23 +9,81 @@
 
     }*/
 
-//Class variables are values that are shared by all objects in the class
-	//USE THIS VARS FOR GENERAL GUI LAYOUT e.g.
-	//classvar seq_length_knob_pos
+TemplateInstGUI{
+
+	var m, instView;
+
+	create{ | instGrid, instView_width, w_width, w_height, prop_height |
+
+		//CREATES THE CONTAINER
+		instView = CompositeView.new(instGrid, Rect(0, 0, (instView_width/2) - 7, (w_width/3) - 7 ) );
+		instView.background = Color.grey;
+
+		//CREATES THE MENU
+		m = PopUpMenu(instView, Rect(0, 0, (0.25*w_width).round, (0.02*w_height).round));
+		m.items = InstFactory.getInstuments;
+
+		m.background_(Color.fromHexString("30ECF8"));  // only changes the look of displayed item
+		m.stringColor_(Color.black);   // only changes the look of displayed item
+		m.font_(Font("Courier", 13));   // only changes the look of displayed item
+
+		m.action = { arg menu;
+			if(menu.item!="Select Instrument",
+				{var inst = InstFactory.getIstance(menu.item);
+					inst.createView(instView, instView_width, w_width, w_height, prop_height);
+			}, {});
+
+			//[menu.value, menu.item].postln;
+		};
+	}
+}
+
+InstFactory {
+
+	classvar <>instrumentId=500;
+
+	*getIstance{ | name |
+
+		var instance = case
+
+		{ name == "kick" }   { instance = KickInst.new}
+
+		//{ name == "kick808" } { instance = nil }
+
+		{ name == "snare" } { instance = SnareInst.new }
+
+		{ name == "hi-hat" } { instance = HiHatInst.new }
+
+		{ name == "sampler" }   { instance = SamplerInst.new }
+
+		{ name == "cowbell" }   { instance = CowbellInst.new };
+
+		instance.pdefId = this.prGenIstrumetId;
+		^instance;
+
+	}
+
+	*getInstuments {
+		^["Select Instrument","kick", /*"kick808",*/ "snare", "hi-hat", "sampler", "cowbell"];
+	}
+
+	//PRIVATE METHOD SHOULD NOT BE CALLED FROM OUTSIDE
+	*prGenIstrumetId{
+		this.instrumentId = this.instrumentId + 1;
+		^this.instrumentId;
+	}
+}
 
 Inst {
 
 	classvar dim_knob_euclidean, dim_knob_sound;
 
-	var <>sequence, <>soundSource,
-	    <>instLabel, ampInst, muteBtn,
+	var <>sequence, <>soundSource, <>pdefId,
+	    <>instLabel, muteBtn, <>closeBtn,
 	    seqHitsKnob, seqLengthKnob, seqOffsetKnob, g;
 
 	/*initializeSequencerGui INITIATES THE GUI RELATIVE TO A GENERIC INSTRUMENT*/
 	initializeSequencerGui { | instView, w_width, w_height, prop_height |
-
-		//saves the current amplitude value for the sound istance
-		soundSource.get(\amp, {arg value; ampInst = value});
 
 		//SETTING COMMON GUI DIMENSIONS
 		dim_knob_euclidean = (0.084*w_height).round;
@@ -74,13 +132,31 @@ Inst {
 			["mute", Color.black, Color.red];
 		]);
 		muteBtn.action_({arg butt;
-			if(butt.value == 1, {soundSource.set(\amp, 0.0)},{soundSource.set(\amp, ampInst)});
+			this.muteStrategy(butt);
+		});
+
+		/*---------CLOSE BUTTON-----------------*/
+		closeBtn = Button(instView, Rect(0, 0, (0.01*w_height).round, (0.01*w_height).round));
+		closeBtn.states_([
+			["X", Color.white, Color.red];
+		]);
+		closeBtn.action_({
+			instView.remove;
+			this.removePdef;
 		});
 	}
 
 	/*UPDATES THE SEQUENCE, AFTER A CHANGE IN THE EUCLIDEAN RHYTHM PARAMETERS
 	TEMPLATE METHOD PATTERN: REAL IMPLEMENTATION IN SUBCLASSES*/
 	updateSequence{ | sequence |
+		^nil
+	}
+
+	muteStrategy{ | muteBtn |
+		if(muteBtn.value == 1, {soundSource.set(\mute, 0)},{soundSource.set(\mute, 1)});
+	}
+
+	removePdef{
 		^nil
 	}
 
@@ -104,9 +180,16 @@ KickInst : Inst {
 
 		super.instLabel.string = "kick";
 
+		super.soundSource = Pdef(super.pdefId,
+			Pbind(
+				\instrument, \kick,
+				\noteOrRest, Pif((Pseq([0,0,0,0], inf))> 0, 1, Rest)
+			)
+		).play(quant:4);
+
 		/* ---- Kick_Decay_Knob -----*/
-		g = ControlSpec.new(0, 3, \lin);
-			decayKnob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round,dim_knob_sound, dim_knob_sound),"decay",g,initVal:0.5);
+		g = ControlSpec.new(0.1, 8, \lin);
+			decayKnob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round,dim_knob_sound, dim_knob_sound),"decay",g,initVal:1);
 
 		decayKnob.action_({
 			super.soundSource.set(\decay,decayKnob.value);
@@ -119,29 +202,23 @@ KickInst : Inst {
 			super.soundSource.set(\punch,punchKnob.value);
 		});
 
-		/* ---- Kick_Comp_Knob -----*/
-		g = ControlSpec.new(0.1, 1, \lin);
-			compKnob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.11*w_height).round, dim_knob_sound, dim_knob_sound),"comp",g,initVal:0.5);
-
-		compKnob.action_({
-			super.soundSource.set(\comp,compKnob.value);
-		});
-
 		/*-----------END INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
 
 	}
 
 	/*UPDATES THE SEQUENCE WHEN AN EUCLIDEAN PARAMETER IS UPDATED*/
 	updateSequence{ | sequence |
-		Pdef(
-			\kickSeq ++ super.soundSource.asNodeID,
+		var seq = Pseq(sequence, inf);
+		Pdef(super.pdefId,
 			Pbind(
-				\type, \set,
-				\id, super.soundSource.asNodeID,
-				//\instument, \kick,
-				\args, #[\t_gate],
-				\t_gate, Pseq(sequence, inf),
-		)).play(quant:4);
+				\instrument, \kick,
+				\noteOrRest, Pif(seq > 0, 1, Rest())
+			)
+		);
+	}
+
+	removePdef{
+		Pdef(super.pdefId).remove;
 	}
 }
 
@@ -160,6 +237,14 @@ SnareInst : Inst {
 		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
 
 		super.instLabel.string = "snare";
+
+		super.soundSource = Pdef(super.pdefId,
+			Pbind(
+				\instrument, \snare,
+				//\level, Pseq([0,0,0,0], inf)
+				\noteOrRest, Pif((Pseq([0,0,0,0], inf))> 0, 1, Rest)
+			)
+		).play(quant:4);
 
 		/* ---- Snare_Decay_Knob -----*/
 		g = ControlSpec.new(0.05, 1, \lin);
@@ -182,18 +267,19 @@ SnareInst : Inst {
 	}
 
 	/*UPDATES THE SEQUENCE WHEN AN EUCLIDEAN PARAMETER IS UPDATED*/
-		updateSequence{ | sequence |
-			Pdef(
-			\snareSeq ++ super.soundSource.asNodeID,
-				Pbind(
-					\type, \set,
-					\id, super.soundSource.asNodeID,
-					//\instument, \snare,
-					\args, #[\t_gate],
-					\t_gate, Pseq(sequence, inf),
-		)).play(quant:4); //IL PROBLEMA E' QUI MA NON CAPISCO LA RAGIONE
+		updateSequence{| sequence |
+		var seq = Pseq(sequence, inf);
+		Pdef(super.pdefId,
+			Pbind(
+				\instrument, \snare,
+				\noteOrRest, Pif(seq > 0, 1, Rest())
+			)
+		);
 		}
 
+	removePdef{
+		Pdef(super.pdefId).remove;
+	}
 }
 
 HiHatInst : Inst {
@@ -212,6 +298,13 @@ HiHatInst : Inst {
 		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
 
 		super.instLabel.string = "hi-hat";
+
+		super.soundSource = Pdef(super.pdefId, //va fatta partire una sola volta questa merda di pdef
+			Pbind(
+				\instrument, \hi_hat,
+				\noteOrRest, Pif((Pseq([0,0,0,0], inf))>0,1,Rest)
+			)
+		).play(quant:4);
 
 		/* ---- Hi-hat_Decay_Knob -----*/
 		g = ControlSpec.new(0.05, 1, \lin);
@@ -235,22 +328,24 @@ HiHatInst : Inst {
 
 	/*UPDATES THE SEQUENCE WHEN AN EUCLIDEAN PARAMETER IS UPDATED*/
 		updateSequence{ | sequence |
-			Pdef(
-			\hi_hatSeq ++ super.soundSource.asNodeID,
-				Pbind(
-					\type, \set,
-					\id, super.soundSource.asNodeID,
-					//\instument, \hi_hat,
-					\args, #[\t_gate],
-					\t_gate, Pseq(sequence, inf),
-		)).play(quant:4);
+		var seq = Pseq(sequence, inf);
+		Pdef(super.pdefId,
+			Pbind(
+				\instrument, \hi_hat,
+				\noteOrRest, Pif(seq>0,1,Rest())
+			)
+		);
 		}
+
+	removePdef{
+		Pdef(super.pdefId).remove;
+	}
 
 }
 
 SamplerInst : Inst {
 
-	var instView, samplerTextBtn, samplerLoadBtn, sample_rate_knob, b,
+	var instView, samplerTextBtn, samplerLoadBtn, sample_rate_knob, b, synth,
 	g;
 
 	/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
@@ -280,8 +375,19 @@ SamplerInst : Inst {
 
 					b.bufnum.postln;
 
-					super.soundSource.set(\buf, b.bufnum);
-					super.soundSource.set(\t_gate, 0);
+					synth = Synth(\sampler);
+					synth.set(\buf, b.bufnum);
+					super.soundSource = Pdef(super.pdefId,
+						Pbind(
+							\type, \set,
+							\id, synth.asNodeID,
+							//\instrument, \sampler,
+							//\noteOrRest, Pif((Pseq([0,0,0,0], inf))>0,1,Rest)
+							\args, #[\t_gate],
+							\t_gate, Pseq([0,0,0,0],inf)
+						)
+					).play(quant:4);
+					//super.soundSource.set(\t_gate, 0);
 				},
 				{},
 				fileMode: 1, acceptMode: 0,
@@ -289,11 +395,11 @@ SamplerInst : Inst {
 		});
 
 		/* ---- sample rate knob -----*/
-		g = ControlSpec.new(0, 1, \lin);
+		g = ControlSpec.new(0, 3, \lin);
 		sample_rate_knob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round, dim_knob_sound, dim_knob_sound),"rate", g,initVal:0.5);
 
 		sample_rate_knob.action_({
-			super.soundSource.set(\rate,sample_rate_knob.value);
+			synth.set(\rate, sample_rate_knob.value);
 		});
 
 		/*-----------END INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
@@ -302,16 +408,27 @@ SamplerInst : Inst {
 
 	/*UPDATES THE SEQUENCE WHEN AN EUCLIDEAN PARAMETER IS UPDATED*/
 		updateSequence{ | sequence |
-			Pdef(
-				\sapler1Seq ++ super.soundSource.asNodeID,
-				Pbind(
-					\type, \set,
-					\id, super.soundSource.asNodeID,
-					//\instument, \sampler,
-					\args, #[\t_gate],
-					\t_gate, Pseq(sequence, inf),
-		)).play(quant:4);
+		var seq = Pseq(sequence, inf);
+		super.soundSource = Pdef(super.pdefId,
+			Pbind(
+				\type, \set,
+				\id, synth.asNodeID,
+				//\instrument, \sampler,
+				//\noteOrRest, Pif((Pseq([0,0,0,0], inf))>0,1,Rest)
+				\args, #[\t_gate],
+				\t_gate, seq
+			)
+		);
 		}
+
+	removePdef{
+		synth.free;
+		Pdef(super.pdefId).remove;
+	}
+
+	muteStrategy{ | muteBtn |
+		if(muteBtn.value == 1, {synth.set(\mute, 0)},{synth.set(\mute, 1)});
+	}
 
 }
 
@@ -331,12 +448,19 @@ CowbellInst : Inst {
 
 		super.instLabel.string = "cowbell";
 
+		super.soundSource = Pdef(super.pdefId,
+			Pbind(
+				\instrument, \cowbell,
+				\noteOrRest, Pif((Pseq([0,0,0,0], inf))>0, 1, Rest)
+			)
+		).play(quant:4);
+
 		/* ---- cowbell_Tone_Knob -----*/
 		g = ControlSpec.new(0.83, 1.6, \lin);
 		cowbellToneKnob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round, dim_knob_sound, dim_knob_sound),"tone",g,initVal:1);
 
 		cowbellToneKnob.action_({
-			super.soundSource.set(\fund_freq,240+(cowbellToneKnob.value*700));
+			super.soundSource.set(\fund_freq,240+(cowbellToneKnob.value*300));
 		});
 
 		/*-----------END INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
@@ -345,14 +469,16 @@ CowbellInst : Inst {
 
 	/*UPDATES THE SEQUENCE WHEN AN EUCLIDEAN PARAMETER IS UPDATED*/
 		updateSequence{ | sequence |
-			Pdef(
-				\cowbellSeq ++ super.soundSource.asNodeID,
-				Pbind(
-					\type, \set,
-					\id, super.soundSource.asNodeID,
-					//\instument, \hi_hat,
-					\args, #[\t_gate],
-					\t_gate, Pseq(sequence, inf),
-		)).play(quant:4);
+		var seq = Pseq(sequence, inf);
+		Pdef(super.pdefId,
+			Pbind(
+				\instrument, \cowbell,
+				\noteOrRest, Pif(seq>0, 1, Rest())
+			)
+		);
 		}
+
+	removePdef{
+		Pdef(super.pdefId).remove;
+	}
 }
