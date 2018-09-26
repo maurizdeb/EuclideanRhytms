@@ -28,8 +28,11 @@ TemplateInstGUI{
 		m.font_(Font("Courier", 13));   // only changes the look of displayed item
 
 		m.action = { arg menu;
-			var inst = InstFactory.getIstance(menu.item);
-			inst.createView(instView, instView_width, w_width, w_height, prop_height);
+			if(menu.item!="Select Instrument",
+				{var inst = InstFactory.getIstance(menu.item);
+					inst.createView(instView, instView_width, w_width, w_height, prop_height);
+			}, {});
+
 			//[menu.value, menu.item].postln;
 		};
 	}
@@ -129,7 +132,7 @@ Inst {
 			["mute", Color.black, Color.red];
 		]);
 		muteBtn.action_({arg butt;
-			if(butt.value == 1, {soundSource.set(\mute, 0)},{soundSource.set(\mute, 1)});
+			this.muteStrategy(butt);
 		});
 
 		/*---------CLOSE BUTTON-----------------*/
@@ -147,6 +150,10 @@ Inst {
 	TEMPLATE METHOD PATTERN: REAL IMPLEMENTATION IN SUBCLASSES*/
 	updateSequence{ | sequence |
 		^nil
+	}
+
+	muteStrategy{ | muteBtn |
+		if(muteBtn.value == 1, {soundSource.set(\mute, 0)},{soundSource.set(\mute, 1)});
 	}
 
 	removePdef{
@@ -338,7 +345,7 @@ HiHatInst : Inst {
 
 SamplerInst : Inst {
 
-	var instView, samplerTextBtn, samplerLoadBtn, sample_rate_knob, b,
+	var instView, samplerTextBtn, samplerLoadBtn, sample_rate_knob, b, synth,
 	g;
 
 	/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
@@ -368,11 +375,16 @@ SamplerInst : Inst {
 
 					b.bufnum.postln;
 
-					super.soundSource.set(\buf, b.bufnum);
+					synth = Synth(\sampler);
+					synth.set(\buf, b.bufnum);
 					super.soundSource = Pdef(super.pdefId,
 						Pbind(
-							\instrument, \sampler,
-							\noteOrRest, Pif((Pseq([0,0,0,0], inf))>0,1,Rest)
+							\type, \set,
+							\id, synth.asNodeID,
+							//\instrument, \sampler,
+							//\noteOrRest, Pif((Pseq([0,0,0,0], inf))>0,1,Rest)
+							\args, #[\t_gate],
+							\t_gate, Pseq([0,0,0,0],inf)
 						)
 					).play(quant:4);
 					//super.soundSource.set(\t_gate, 0);
@@ -387,7 +399,7 @@ SamplerInst : Inst {
 		sample_rate_knob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round, dim_knob_sound, dim_knob_sound),"rate", g,initVal:0.5);
 
 		sample_rate_knob.action_({
-			super.soundSource.set(\rate, sample_rate_knob.value);
+			synth.set(\rate, sample_rate_knob.value);
 		});
 
 		/*-----------END INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
@@ -397,16 +409,25 @@ SamplerInst : Inst {
 	/*UPDATES THE SEQUENCE WHEN AN EUCLIDEAN PARAMETER IS UPDATED*/
 		updateSequence{ | sequence |
 		var seq = Pseq(sequence, inf);
-		super.soundSource = Pdef(
-			super.pdefId,
+		super.soundSource = Pdef(super.pdefId,
 			Pbind(
-				\instrument, \sampler,
-				\noteOrRest, Pif(seq>0,1,Rest())
-		));
+				\type, \set,
+				\id, synth.asNodeID,
+				//\instrument, \sampler,
+				//\noteOrRest, Pif((Pseq([0,0,0,0], inf))>0,1,Rest)
+				\args, #[\t_gate],
+				\t_gate, seq
+			)
+		);
 		}
 
 	removePdef{
+		synth.free;
 		Pdef(super.pdefId).remove;
+	}
+
+	muteStrategy{ | muteBtn |
+		if(muteBtn.value == 1, {synth.set(\mute, 0)},{synth.set(\mute, 1)});
 	}
 
 }
