@@ -1,5 +1,5 @@
 # Fdb version 3
-["pdflatex"] 1539817927 "main.tex" "main.pdf" "main" 1539817927
+["pdflatex"] 1539818321 "main.tex" "main.pdf" "main" 1539818321
   "/usr/local/texlive/2018basic/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm" 1480098701 1324 c910af8c371558dc20f2d7822f66fe64 ""
   "/usr/local/texlive/2018basic/texmf-dist/fonts/tfm/public/cm/cmcsc10.tfm" 1480098701 1300 63a6111ee6274895728663cf4b4e7e81 ""
   "/usr/local/texlive/2018basic/texmf-dist/fonts/tfm/public/cm/cmr12.tfm" 1480098701 1288 655e228510b4c2a1abe905c368440826 ""
@@ -43,13 +43,13 @@
   "devel.tex" 1539815691 202 d2e9f6db6d9f2dc813c7117dc5f8f408 ""
   "gui_synth.tex" 1539816276 199 860db15eb6fe59ee4762f95b5ea076ca ""
   "intro.tex" 1539815534 237 54c54491dda054ccfa76a56f01a92eec ""
-  "main.aux" 1539817927 1171 d53c2ac789509f3d5b634d2d41c24f80 ""
-  "main.out" 1539817927 299 45c99deece9e2ac4e52d93a191edf765 ""
-  "main.tex" 1539817927 980 d69d1da4e3138edb1761321c18b9c3bb ""
-  "main.toc" 1539817927 420 f3326076bb673f3be58b4193bc85f420 ""
+  "main.aux" 1539818321 1171 d53c2ac789509f3d5b634d2d41c24f80 ""
+  "main.out" 1539818321 299 45c99deece9e2ac4e52d93a191edf765 ""
+  "main.tex" 1539818320 933 77fda819aaaf903d166a62e0fcea1b77 ""
+  "main.toc" 1539818321 420 f3326076bb673f3be58b4193bc85f420 ""
   (generated)
-  "main.toc"
-  "main.pdf"
-  "main.log"
   "main.aux"
+  "main.log"
+  "main.toc"
   "main.out"
+  "main.pdf"
