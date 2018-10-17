@@ -1,0 +1,48 @@
+\documentclass{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{hyperref}
+\usepackage{subfiles}
+\usepackage{blindtext}
+\usepackage[margin=1in, includefoot]{geometry}
+
+\begin{document}
+
+\begin{titlepage}
+	\begin{center}
+	\line(1,0){300}\\
+	[0.25in]
+	\huge{\bfseries Euclidean Algorithm for auto-generative patterns in a Supercollider application}\\
+	[2mm]
+	\line(1,0){200}\\
+	[1.5cm]
+	\textsc{\LARGE Project of Computer Music course}\\
+	[0.75cm]
+	\textsc{\Large Prof. Antonacci Fabio}\\
+	[9cm]
+	\end{center}
+	\begin{flushright}
+	\textsc{\large  Students:\\
+	De Bari Mauro Giuseppe Matr.899371 \\
+	Albertini Davide Matr. \\
+	October 18, 2018 \\}
+	\end{flushright}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Introduction}
+\subfile{intro}
+
+\section{Development of application}
+\subfile{devel}
+\subsection{Algorithm}
+\subfile{algorithm}
+\subsection{SynthDefs and Gui Layout}
+\subfile{gui_synth}
+\section{Conclusions}
+\subfile{conc}
+
+\end{document}

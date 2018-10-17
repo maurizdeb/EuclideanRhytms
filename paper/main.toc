@@ -1,0 +1,6 @@
+\babel@toc {english}{}
+\contentsline {section}{\numberline {0.1}Introduction}{2}{section.0.1}
+\contentsline {section}{\numberline {0.2}Development of application}{3}{section.0.2}
+\contentsline {subsection}{\numberline {0.2.1}Algorithm}{4}{subsection.0.2.1}
+\contentsline {subsection}{\numberline {0.2.2}SynthDefs and Gui Layout}{5}{subsection.0.2.2}
+\contentsline {section}{\numberline {0.3}Conclusions}{6}{section.0.3}
