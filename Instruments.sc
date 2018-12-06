@@ -11,26 +11,29 @@
 
 TemplateInstGUI{
 
-	var m, instView;
+	var m, templateView;
 
-	create{ | instGrid, instView_width, w_width, w_height, prop_height |
+	create{ | instGrid |
 
-		//CREATES THE CONTAINER
-		instView = CompositeView.new(instGrid, Rect(0, 0, (instView_width/2) - 7, (w_width/3) - 7 ) );
-		instView.background = Color.grey;
+		var instGrid_width = instGrid.bounds.width;
+		var templateView_spacing = 7;//spacing between the various templateViews
 
-		//CREATES THE MENU
-		m = PopUpMenu(instView, Rect(0, 0, (0.25*w_width).round, (0.02*w_height).round));
+		//CREATES THE CONTAINER "templateView"
+		templateView = CompositeView.new(instGrid, Rect(0, 0, (instGrid_width/2) - templateView_spacing, (instGrid_width*2/3) - templateView_spacing ) );
+		templateView.background = Color.grey;
+
+		//CREATES A MENU IN IT
+		m = PopUpMenu(templateView, Rect(0, 0, instGrid_width/4, instGrid_width/20));
 		m.items = InstFactory.getInstuments;
 
 		m.background_(Color.fromHexString("30ECF8"));  // only changes the look of displayed item
 		m.stringColor_(Color.black);   // only changes the look of displayed item
-		m.font_(Font("Courier", 13));   // only changes the look of displayed item
+		m.font_(Font("AR DESTINE", 13));   // only changes the look of displayed item
 
 		m.action = { arg menu;
-			if(menu.item!="Select Instrument",
+			if(menu.item!="SELECT INSTRUMENT",
 				{var inst = InstFactory.getIstance(menu.item);
-					inst.createView(instView, instView_width, w_width, w_height, prop_height);
+					inst.createView(templateView);
 			}, {});
 
 			//[menu.value, menu.item].postln;
@@ -64,7 +67,7 @@ InstFactory {
 	}
 
 	*getInstuments {
-		^["Select Instrument","kick", /*"kick808",*/ "snare", "hi-hat", "sampler", "cowbell"];
+		^["SELECT INSTRUMENT","kick", /*"kick808",*/ "snare", "hi-hat", "sampler", "cowbell"];
 	}
 
 	//PRIVATE METHOD SHOULD NOT BE CALLED FROM OUTSIDE
@@ -80,63 +83,84 @@ Inst {
 
 	var <>sequence, <>soundSource, <>pdefId,
 	    <>instLabel, muteBtn, <>closeBtn,
-	    seqHitsKnob, seqLengthKnob, seqOffsetKnob, g;
+	    <>sequence16,
+	    seqHitsKnob, seqLengthKnob, seqOffsetKnob, humanizerKnob, g;
 
 	/*initializeSequencerGui INITIATES THE GUI RELATIVE TO A GENERIC INSTRUMENT*/
-	initializeSequencerGui { | instView, w_width, w_height, prop_height |
+	initializeSequencerGui { | instView |
+
+		var instView_width = instView.bounds.width;
+		var instView_heigth = instView.bounds.height;
 
 		//SETTING COMMON GUI DIMENSIONS
-		dim_knob_euclidean = (0.084*w_height).round;
-		dim_knob_sound = (prop_height*0.105*w_height).round;
+		dim_knob_euclidean = instView.bounds.width/5;
+		dim_knob_sound = instView.bounds.width/4;
 
 		//SETTING INSTRUMENT LABEL
-		instLabel = StaticText(instView, Rect((0.02*w_width).round, (0.26*w_height).round, (0.21*w_width).round, (0.03*w_height).round));
-		instLabel.background = Color.yellow;
+		instLabel = StaticText(instView, Rect(instView_width/4, instView_heigth/30, instView_width/2, instView_heigth/20));
+		instLabel.font_("AR DESTINE", 30);
+		instLabel.background = Color.fromHexString("BADFFF");
 		instLabel.align_(\center);
 
 		/*-----Euclidean Rhythm Controls--------*/
+
 		g = ControlSpec.new(1, 16, \lin, 1);
-		seqLengthKnob = EZKnob(instView,Rect((0.26*w_width).round,(0.02*w_height).round, dim_knob_euclidean, dim_knob_euclidean),"length",g,initVal:16);
+		seqLengthKnob = EZKnob(instView,Rect(instView_width/16, instView_width*3/4, dim_knob_euclidean, dim_knob_euclidean),"length",g,initVal:16);
 
 		seqLengthKnob.action_({
-			sequence = EuclideanRhythmGen.compute_rhythm(seqHitsKnob.value, seqLengthKnob.value);
+			sequence16 = EuclideanRhythmGen.compute_rhythm(seqHitsKnob.value, seqLengthKnob.value); //in 16th notes
+			sequence = EuclideanRhythmGen.convertToClockResolution(sequence16, 16, 256);
 			this.updateSequence(sequence);
 		});
 
 		g = ControlSpec.new(0, 16, \lin, 1);
-		seqHitsKnob = EZKnob(instView,Rect((0.26*w_width).round,(0.105*w_height).round,dim_knob_euclidean, dim_knob_euclidean),"hits",g,initVal:0);
+		seqHitsKnob = EZKnob(instView,Rect(instView_width*5/16, instView_width*3/4, dim_knob_euclidean, dim_knob_euclidean),"hits",g,initVal:0);
 
 		seqHitsKnob.action_({
-			sequence = EuclideanRhythmGen.compute_rhythm(seqHitsKnob.value, seqLengthKnob.value);
+			sequence16 = EuclideanRhythmGen.compute_rhythm(seqHitsKnob.value, seqLengthKnob.value); //in 16th notes
+			sequence = EuclideanRhythmGen.convertToClockResolution(sequence16, 16, 256);
 			this.updateSequence(sequence);
 		});
 
 		g = ControlSpec.new(0, 16, \lin, 1);
-		seqOffsetKnob = EZKnob(instView,Rect((0.26*w_width).round,(0.19*w_height).round, dim_knob_euclidean, dim_knob_euclidean),"offset",g,initVal:0);
+		seqOffsetKnob = EZKnob(instView,Rect(instView_width*9/16, instView_width*3/4, dim_knob_euclidean, dim_knob_euclidean),"offset",g,initVal:0);
 
 		seqOffsetKnob.action_({
 			if(seqOffsetKnob.value < seqLengthKnob.value, {
 				var zeroOffsetSeq;
 				zeroOffsetSeq = EuclideanRhythmGen.compute_rhythm(seqHitsKnob.value, seqLengthKnob.value);
-				sequence = zeroOffsetSeq.rotate(seqOffsetKnob.value.asInteger);
+				sequence16 = zeroOffsetSeq.rotate(seqOffsetKnob.value.asInteger); //in 16th notes
+				sequence = EuclideanRhythmGen.convertToClockResolution(sequence16, 16, 256);
 				this.updateSequence(sequence);
 			});
 
 		});
 
+		/*--------HUMANIZER CONTROL-----*/
+
+		g = ControlSpec.new(0, 1, \lin, 0.1);
+		humanizerKnob = EZKnob(instView,Rect(instView_width*13/16, instView_width*3/4, dim_knob_euclidean, dim_knob_euclidean),"humanizer",g,initVal:0);
+
+		humanizerKnob.action_({
+			sequence = EuclideanRhythmGen.compute_rhythm(seqHitsKnob.value, seqLengthKnob.value);
+			this.updateSequence(sequence);
+
+		});
+
 		/*--------MUTE BUTTON-----------*/
 
-		muteBtn = Button(instView, Rect((0.02*w_width).round, (0.21*w_height).round,(0.09*w_width).round, (0.03*w_height).round));
+		muteBtn = Button(instView, Rect(instView_width*7/15, instView_heigth/10, instView_width/15, instView_width/15));
 		muteBtn.states_([
-			["mute", Color.black, Color.white],
-			["mute", Color.black, Color.red];
+			["M", Color.black, Color.white],
+			["M", Color.black, Color.red];
 		]);
 		muteBtn.action_({arg butt;
 			this.muteStrategy(butt);
 		});
 
 		/*---------CLOSE BUTTON-----------------*/
-		closeBtn = Button(instView, Rect(0, 0, (0.01*w_height).round, (0.01*w_height).round));
+		closeBtn = Button(instView, Rect(0, 0, instView_width/40, instView_width/40) );
+		closeBtn.font("Bahnschrift");
 		closeBtn.states_([
 			["X", Color.white, Color.red];
 		]);
@@ -169,34 +193,34 @@ KickInst : Inst {
 	    g;
 
 	/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
-	createView{ | containter, instView_width, w_width , w_height, prop_height|
+	createView{ | templateView |
 
-		instView = CompositeView.new(containter, Rect(0, 0, (instView_width/2) - 7, (w_width/3) - 7 ) );
+		instView = CompositeView.new(templateView, Rect(0, 0, templateView.bounds.width, templateView.bounds.height) );
 		instView.background = Color.grey;
 
-		super.initializeSequencerGui(instView, w_width, w_height, prop_height);
+		super.initializeSequencerGui(instView);
 
 		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
 
-		super.instLabel.string = "kick";
+		super.instLabel.string = "KICK";
 
 		super.soundSource = Pdef(super.pdefId,
 			Pbind(
 				\instrument, \kick,
 				\noteOrRest, Pif((Pseq([0,0,0,0], inf))> 0, 1, Rest)
 			)
-		).play(quant:4);
+		).play(quant:1024);
 
-		/* ---- Kick_Decay_Knob -----*/
+				/* ---- Kick_Decay_Knob -----*/
 		g = ControlSpec.new(0.1, 8, \lin);
-			decayKnob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round,dim_knob_sound, dim_knob_sound),"decay",g,initVal:1);
+			decayKnob = EZKnob(instView, Rect(instView.bounds.left + 45, instView.bounds.top + 100, dim_knob_sound, dim_knob_sound),"decay",g,initVal:1);
 
 		decayKnob.action_({
 			super.soundSource.set(\decay,decayKnob.value);
 		});
 		/* ---- Kick_Punch_Knob -----*/
 		g = ControlSpec.new(0, 1, \lin);
-			punchKnob = EZKnob(instView,Rect((0.13*w_width).round,(0.01*w_height).round, dim_knob_sound, dim_knob_sound),"punch",g,initVal:0.55);
+			punchKnob = EZKnob(instView, Rect(instView.bounds.left + 240, instView.bounds.top + 100, dim_knob_sound, dim_knob_sound),"punch",g,initVal:0.55);
 
 		punchKnob.action_({
 			super.soundSource.set(\punch,punchKnob.value);
@@ -227,12 +251,12 @@ SnareInst : Inst {
 	var instView, snareTextBtn, snareDecayKnob, snareToneKnob, g;
 
 	/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
-	createView{ | containter, instView_width, w_width, w_height, prop_height |
+	createView{ | templateView |
 
-		instView = CompositeView.new(containter, Rect(0, 0, (instView_width/2) - 7, (w_width/3) - 7 ) );
+		instView = CompositeView.new(templateView, Rect(0, 0, templateView.bounds.width, templateView.bounds.height) );
 		instView.background = Color.grey;
 
-		super.initializeSequencerGui(instView, w_width, w_height, prop_height);
+		super.initializeSequencerGui(instView);
 
 		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
 
@@ -244,11 +268,11 @@ SnareInst : Inst {
 				//\level, Pseq([0,0,0,0], inf)
 				\noteOrRest, Pif((Pseq([0,0,0,0], inf))> 0, 1, Rest)
 			)
-		).play(quant:4);
+		).play(quant:1024);
 
 		/* ---- Snare_Decay_Knob -----*/
 		g = ControlSpec.new(0.05, 1, \lin);
-		snareDecayKnob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round,dim_knob_sound, dim_knob_sound),"decay",g,initVal:0.1);
+		snareDecayKnob = EZKnob(instView, Rect(instView.bounds.left + 45, instView.bounds.top + 100, dim_knob_sound, dim_knob_sound),"decay",g,initVal:0.1);
 
 		snareDecayKnob.action_({
 			super.soundSource.set(\decay,snareDecayKnob.value);
@@ -256,7 +280,7 @@ SnareInst : Inst {
 
 		/* ---- Snare_Tone_Knob -----*/
 		g = ControlSpec.new(0.7, 1.3, \lin);
-		snareToneKnob = EZKnob(instView,Rect((0.13*w_width).round,(0.01*w_height).round, dim_knob_sound, dim_knob_sound),"tone",g,initVal:1);
+		snareToneKnob = EZKnob(instView, Rect(instView.bounds.left + 240, instView.bounds.top + 100, dim_knob_sound, dim_knob_sound),"tone",g,initVal:1);
 
 		snareToneKnob.action_({
 			super.soundSource.set(\tone,snareToneKnob.value);
@@ -288,12 +312,12 @@ HiHatInst : Inst {
 	g;
 
 	/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
-	createView{ | containter, instView_width, w_width, w_height, prop_height |
+	createView{ | templateView |
 
-		instView = CompositeView.new(containter, Rect(0, 0, (instView_width/2) - 7, (w_width/3) - 7 ) );
+		instView = CompositeView.new(templateView, Rect(0, 0, templateView.bounds.width, templateView.bounds.height) );
 		instView.background = Color.grey;
 
-		super.initializeSequencerGui(instView, w_width, w_height, prop_height);
+		super.initializeSequencerGui(instView);
 
 		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
 
@@ -304,11 +328,11 @@ HiHatInst : Inst {
 				\instrument, \hi_hat,
 				\noteOrRest, Pif((Pseq([0,0,0,0], inf))>0,1,Rest)
 			)
-		).play(quant:4);
+		).play(quant:1024);
 
 		/* ---- Hi-hat_Decay_Knob -----*/
 		g = ControlSpec.new(0.05, 1, \lin);
-		hi_hatDecayKnob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round, dim_knob_sound, dim_knob_sound),"decay",g,initVal:0.1);
+		hi_hatDecayKnob = EZKnob(instView, Rect(instView.bounds.left + 45, instView.bounds.top + 100, dim_knob_sound, dim_knob_sound),"decay",g,initVal:0.1);
 
 		hi_hatDecayKnob.action_({
 			super.soundSource.set(\opening,hi_hatDecayKnob.value);
@@ -316,7 +340,7 @@ HiHatInst : Inst {
 
 		/* ---- Hi-hat_Tone_Knob -----*/
 		g = ControlSpec.new(0.83, 1.6, \lin);
-		hi_hatToneKnob = EZKnob(instView,Rect((0.13*w_width).round,(0.01*w_height).round, dim_knob_sound, dim_knob_sound),"tone",g,initVal:1);
+		hi_hatToneKnob = EZKnob(instView, Rect(instView.bounds.left + 240, instView.bounds.top + 100, dim_knob_sound, dim_knob_sound),"tone",g,initVal:1);
 
 		hi_hatToneKnob.action_({
 			super.soundSource.set(\freq,hi_hatToneKnob.value);
@@ -349,19 +373,19 @@ SamplerInst : Inst {
 	g;
 
 	/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
-	createView{ | containter, instView_width, w_width, w_height, prop_height |
+	createView{ | templateView |
 
-		instView = CompositeView.new(containter, Rect(0, 0, (instView_width/2) - 7, (w_width/3) - 7 ) );
+		instView = CompositeView.new(templateView, Rect(0, 0, templateView.bounds.width, templateView.bounds.height) );
 		instView.background = Color.grey;
 
-		super.initializeSequencerGui(instView, w_width, w_height, prop_height);
+		super.initializeSequencerGui(instView);
 
 		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
 
 		super.instLabel.string = "sampler";
 
 		/* ---- btnLoad -----*/
-		samplerLoadBtn = Button(instView,Rect((0.02*w_width).round, (0.18*w_height).round, (0.21*w_width).round, (0.03*w_height).round));
+		samplerLoadBtn = Button(instView, Rect(instView.bounds.left + 40, instView.bounds.top + 100, templateView.bounds.width/5, templateView.bounds.width/20));
 		samplerLoadBtn.string = "load sample";
 
 		samplerLoadBtn.action_({ arg butt;
@@ -386,7 +410,7 @@ SamplerInst : Inst {
 							\args, #[\t_gate],
 							\t_gate, Pseq([0,0,0,0],inf)
 						)
-					).play(quant:4);
+					).play(quant:1024);
 					//super.soundSource.set(\t_gate, 0);
 				},
 				{},
@@ -396,7 +420,7 @@ SamplerInst : Inst {
 
 		/* ---- sample rate knob -----*/
 		g = ControlSpec.new(0, 3, \lin);
-		sample_rate_knob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round, dim_knob_sound, dim_knob_sound),"rate", g,initVal:0.5);
+		sample_rate_knob = EZKnob(instView, Rect(instView.bounds.left + 240, instView.bounds.top + 100, dim_knob_sound, dim_knob_sound),"rate", g,initVal:0.5);
 
 		sample_rate_knob.action_({
 			synth.set(\rate, sample_rate_knob.value);
@@ -437,12 +461,12 @@ CowbellInst : Inst {
 	var instView, cowbellTextBtn, cowbellToneKnob, g;
 
 		/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
-	createView{ | containter, instView_width, w_width, w_height, prop_height |
+	createView{ | templateView |
 
-		instView = CompositeView.new(containter, Rect(0, 0, (instView_width/2) - 7, (w_width/3) - 7 ) );
+		instView = CompositeView.new(templateView, Rect(0, 0, templateView.bounds.width, templateView.bounds.height) );
 		instView.background = Color.grey;
 
-		super.initializeSequencerGui(instView, w_width, w_height, prop_height);
+		super.initializeSequencerGui(instView);
 
 		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
 
@@ -453,11 +477,11 @@ CowbellInst : Inst {
 				\instrument, \cowbell,
 				\noteOrRest, Pif((Pseq([0,0,0,0], inf))>0, 1, Rest)
 			)
-		).play(quant:4);
+		).play(quant:1024);
 
 		/* ---- cowbell_Tone_Knob -----*/
 		g = ControlSpec.new(0.83, 1.6, \lin);
-		cowbellToneKnob = EZKnob(instView,Rect(((10/1024)*w_width).round,(0.01*w_height).round, dim_knob_sound, dim_knob_sound),"tone",g,initVal:1);
+		cowbellToneKnob = EZKnob(instView, Rect(instView.bounds.left + 45, instView.bounds.top + 100, dim_knob_sound, dim_knob_sound),"tone",g,initVal:1);
 
 		cowbellToneKnob.action_({
 			super.soundSource.set(\fund_freq,240+(cowbellToneKnob.value*300));

@@ -64,8 +64,8 @@ s.waitForBoot{(
 
 		var hat, ampEnv;
 
-		hat = LPF.ar(SinOsc.ar(6000*freq, mul: 0.2) - PinkNoise.ar(1),6000);
-		hat = HPF.ar(hat,2000);
+		hat = LPF.ar(SinOsc.ar(6000*freq, mul: 0.1) - PinkNoise.ar(1),8000);
+		hat = HPF.ar(hat,4000);
 
 		ampEnv = EnvGen.kr(Env.perc(0.001, opening, 1, -5), doneAction:2);
 
@@ -105,25 +105,26 @@ s.waitForBoot{(
 )}
 )
 
-
 (
 
 //GENERAL GUI VARIABLES
 var w, w_width, w_height, screen_size, prop_height, prop_width,
-    sidebar_width, instView_width, instGrid, instScroll, buttonTemplateAdd,
+    sidebar_width, instGrid_width, instGrid, instScroll, buttonTemplateAdd,
 //TEMPO VARIABLES
-    tempoKnob,
+    tempoKnob, clockRes,
 //INSTRUMENT VARIABLES
     slot1, slot2, slot3, slot4, slot5, slot6, slot7, slot8;
 
 screen_size = Window.screenBounds;
 
+//horizontal and vertical percentage of the screen to be occupied by the window
 prop_width = 0.53;
 prop_height = 0.88;
+
 w_width = (prop_width * screen_size.width).round;
 w_height = (prop_height * screen_size.height).round;
+
 sidebar_width = (0.2 * w_width).round;
-instView_width = w_width - sidebar_width;
 
 w = Window("Euclidean AlgoRhythmic Sequencer", Rect(
 	(screen_size.width /2) - (w_width/2),
@@ -139,39 +140,44 @@ w.alwaysOnTop = true;                         //For Developing purposes, it's be
 
 /*-----------------------------------------TEMPO------------------------------------------------*/
 
+//clockRes = 4; //clock in 16th
+clockRes = 256; //clock in 1024th
+
 g = ControlSpec.new(40, 240, \linear, 1);
 tempoKnob = EZKnob(w, Rect((0.85*w_width).round, (0.01*w_height).round, (prop_height*w_height*0.105).round, (prop_height*0.105*w_height).round),"bpm", g, initVal:120);
 
 tempoKnob.action_({
 	var tmp = tempoKnob.value;
-	TempoClock.default.tempo_( 4 * (tmp / 60)); //clock in 16th
+	TempoClock.default.tempo_( clockRes * (tmp / 60));
 	//tmp.postln;
 });
 
 /*----------------------------------INSTRUMENTS GRID--------------------------------------------*/
 
-instGrid = ScrollView.new(w,Rect(0,0, instView_width, w_height) );
-instGrid.background = Color.fromHexString("4BA4B8");
-instGrid.decorator = FlowLayout(Rect(0, 0, instView_width, w_height) ); // adds a Grid layout for all the instuments
+instGrid_width = w_width - sidebar_width;
+
+instGrid = ScrollView.new(w,Rect(0,0, instGrid_width, w_height) );
+instGrid.background = Color.fromHexString("b7c5d6");
+instGrid.decorator = FlowLayout(Rect(0, 0, instGrid_width, w_height) ); // adds a Grid layout for all the instuments
 
 /*------------------------------------Button Instrument Template--------------------------------*/
 
 buttonTemplateAdd = Button(w, Rect((0.81*w_width).round, (0.12*w_height).round, (0.18*w_width).round, (0.02*w_height).round));
 buttonTemplateAdd.string = "Add instrument";
 buttonTemplateAdd.action_({
-	TemplateInstGUI.new.create( instGrid, instView_width, w_width, w_height, prop_height );
+	TemplateInstGUI.new.create( instGrid, instGrid_width, w_width, w_height, prop_height );
 });
 
 /*-----------------------------------INSTUMENTS GUI----------------------------------------------------*/
 
-slot1 = TemplateInstGUI.new.create( instGrid, instView_width, w_width, w_height, prop_height );
-slot2 = TemplateInstGUI.new.create( instGrid, instView_width, w_width, w_height, prop_height );
-slot3 = TemplateInstGUI.new.create( instGrid, instView_width, w_width, w_height, prop_height );
-slot4 = TemplateInstGUI.new.create( instGrid, instView_width, w_width, w_height, prop_height );
-slot5 = TemplateInstGUI.new.create( instGrid, instView_width, w_width, w_height, prop_height );
-slot6 = TemplateInstGUI.new.create( instGrid, instView_width, w_width, w_height, prop_height );
-slot7 = TemplateInstGUI.new.create( instGrid, instView_width, w_width, w_height, prop_height );
-slot8 = TemplateInstGUI.new.create( instGrid, instView_width, w_width, w_height, prop_height );
+slot1 = TemplateInstGUI.new.create(instGrid);
+slot2 = TemplateInstGUI.new.create(instGrid);
+slot3 = TemplateInstGUI.new.create(instGrid);
+slot4 = TemplateInstGUI.new.create(instGrid);
+slot5 = TemplateInstGUI.new.create(instGrid);
+slot6 = TemplateInstGUI.new.create(instGrid);
+slot7 = TemplateInstGUI.new.create(instGrid);
+slot8 = TemplateInstGUI.new.create(instGrid);
 
 
 

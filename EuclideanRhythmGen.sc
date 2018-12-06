@@ -79,4 +79,19 @@ EuclideanRhythmGen {
 		^sequence;
 	}
 
+	*convertToClockResolution { | sequence, clockRes |
+
+		var sequenceConverted;
+
+		//Convertion from pattern in 16th to the actual clock resolution
+		sequenceConverted = Array.fill( ((sequence.size()*clockRes)/4), {0});
+
+		for(0, (sequence.size()-1), { arg seqResStep;
+			//fisrt position of the 16th block is equal to what the algorithm has computed
+			sequenceConverted = sequenceConverted.put(((seqResStep*clockRes)/4), sequence[seqResStep]);
+		});
+
+		^sequenceConverted;
+	}
+
 }
