@@ -141,7 +141,7 @@ w.alwaysOnTop = true;                         //For Developing purposes, it's be
 /*-----------------------------------------TEMPO------------------------------------------------*/
 
 //clockRes = 4; //clock in 16th
-clockRes = 256; //clock in 1024th
+clockRes = 4; //clock in 1024th
 
 g = ControlSpec.new(40, 240, \linear, 1);
 tempoKnob = EZKnob(w, Rect((0.85*w_width).round, (0.01*w_height).round, (prop_height*w_height*0.105).round, (prop_height*0.105*w_height).round),"bpm", g, initVal:120);
@@ -165,7 +165,7 @@ instGrid.decorator = FlowLayout(Rect(0, 0, instGrid_width, w_height) ); // adds 
 buttonTemplateAdd = Button(w, Rect((0.81*w_width).round, (0.12*w_height).round, (0.18*w_width).round, (0.02*w_height).round));
 buttonTemplateAdd.string = "Add instrument";
 buttonTemplateAdd.action_({
-	TemplateInstGUI.new.create( instGrid, instGrid_width, w_width, w_height, prop_height );
+	TemplateInstGUI.new.create( instGrid);
 });
 
 /*-----------------------------------INSTUMENTS GUI----------------------------------------------------*/
@@ -191,5 +191,5 @@ w.onClose={s.freeAll; Pdef.removeAll};
 
 )
 
-
+Platform.userExtensionDir;
 
