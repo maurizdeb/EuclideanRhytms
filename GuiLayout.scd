@@ -64,7 +64,7 @@ s.waitForBoot{(
 
 		var hat, ampEnv;
 
-		hat = LPF.ar(SinOsc.ar(6000*freq, mul: 0.1) - PinkNoise.ar(1),8000);
+		hat = LPF.ar(SinOsc.ar(6000*freq, mul: 0.1) - PinkNoise.ar(1), 12000);
 		hat = HPF.ar(hat,4000);
 
 		ampEnv = EnvGen.kr(Env.perc(0.001, opening, 1, -5), doneAction:2);
@@ -141,7 +141,7 @@ w.alwaysOnTop = true;                         //For Developing purposes, it's be
 /*-----------------------------------------TEMPO------------------------------------------------*/
 
 //clockRes = 4; //clock in 16th
-clockRes = 4; //clock in 1024th
+clockRes = 256; //clock in 1024th
 
 g = ControlSpec.new(40, 240, \linear, 1);
 tempoKnob = EZKnob(w, Rect((0.85*w_width).round, (0.01*w_height).round, (prop_height*w_height*0.105).round, (prop_height*0.105*w_height).round),"bpm", g, initVal:120);

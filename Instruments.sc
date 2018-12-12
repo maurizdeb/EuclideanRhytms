@@ -81,9 +81,8 @@ Inst {
 
 	classvar dim_knob_euclidean, dim_knob_sound;
 
-	var <>sequence, <>soundSource, <>pdefId,
+	var sequence16, <>sequence, <>soundSource, <>pdefId,
 	    <>instLabel, muteBtn, <>closeBtn,
-	    <>sequence16,
 	    seqHitsKnob, seqLengthKnob, seqOffsetKnob, humanizerKnob, g;
 
 	/*initializeSequencerGui INITIATES THE GUI RELATIVE TO A GENERIC INSTRUMENT*/
@@ -104,13 +103,13 @@ Inst {
 
 		/*-----Euclidean Rhythm Controls--------*/
 
+
 		g = ControlSpec.new(1, 16, \lin, 1);
 		seqLengthKnob = EZKnob(instView,Rect(instView_width/16, instView_width*3/4, dim_knob_euclidean, dim_knob_euclidean),"length",g,initVal:16);
 
 		seqLengthKnob.action_({
 			sequence16 = EuclideanRhythmGen.compute_rhythm(seqHitsKnob.value, seqLengthKnob.value); //in 16th notes
-			sequence = EuclideanRhythmGen.convertToClockResolution(sequence16, 4);
-
+			sequence = EuclideanRhythmGen.convertToClockResolution(sequence16, 256);
 			this.updateSequence(sequence);
 		});
 
@@ -119,7 +118,7 @@ Inst {
 
 		seqHitsKnob.action_({
 			sequence16 = EuclideanRhythmGen.compute_rhythm(seqHitsKnob.value, seqLengthKnob.value); //in 16th notes
-			sequence = EuclideanRhythmGen.convertToClockResolution(sequence16, 4);
+			sequence = EuclideanRhythmGen.convertToClockResolution(sequence16, 256);
 			this.updateSequence(sequence);
 		});
 
@@ -131,7 +130,7 @@ Inst {
 				var zeroOffsetSeq;
 				zeroOffsetSeq = EuclideanRhythmGen.compute_rhythm(seqHitsKnob.value, seqLengthKnob.value);
 				sequence16 = zeroOffsetSeq.rotate(seqOffsetKnob.value.asInteger); //in 16th notes
-				sequence = EuclideanRhythmGen.convertToClockResolution(sequence16, 4);
+				sequence = EuclideanRhythmGen.convertToClockResolution(sequence16, 256);
 				this.updateSequence(sequence);
 			});
 
@@ -143,9 +142,9 @@ Inst {
 		humanizerKnob = EZKnob(instView,Rect(instView_width*13/16, instView_width*3/4, dim_knob_euclidean, dim_knob_euclidean),"humanizer",g,initVal:0);
 
 		humanizerKnob.action_({
-			sequence = EuclideanRhythmGen.compute_rhythm(seqHitsKnob.value, seqLengthKnob.value);
-			this.updateSequence(sequence);
-
+			sequence16 = EuclideanRhythmGen.compute_rhythm(seqHitsKnob.value, seqLengthKnob.value); //in 16th notes
+			sequence = EuclideanRhythmGen.convertToClockResolution(sequence16, 256);
+			sequence = RhythmEditor.humanize(sequence, 256, humanizerKnob.value);
 		});
 
 		/*--------MUTE BUTTON-----------*/
@@ -210,7 +209,7 @@ KickInst : Inst {
 				\instrument, \kick,
 				\noteOrRest, Pif((Pseq([0,0,0,0], inf))> 0, 1, Rest)
 			)
-		).play(quant:4);
+		).play(quant:256);
 
 				/* ---- Kick_Decay_Knob -----*/
 		g = ControlSpec.new(0.1, 8, \lin);
@@ -237,7 +236,7 @@ KickInst : Inst {
 		Pdef(super.pdefId,
 			Pbind(
 				\instrument, \kick,
-				\noteOrRest, Pif(seq > 0, {rrand(0.01, 0.9).wait; 1}, Rest())
+				\noteOrRest, Pif(seq > 0, 1, Rest())
 			)
 		);
 	}
@@ -269,7 +268,7 @@ SnareInst : Inst {
 				//\level, Pseq([0,0,0,0], inf)
 				\noteOrRest, Pif((Pseq([0,0,0,0], inf))> 0, 1, Rest)
 			)
-		).play(quant:4);
+		).play(quant:256);
 
 		/* ---- Snare_Decay_Knob -----*/
 		g = ControlSpec.new(0.05, 1, \lin);
@@ -297,7 +296,7 @@ SnareInst : Inst {
 		Pdef(super.pdefId,
 			Pbind(
 				\instrument, \snare,
-				\noteOrRest, Pif(seq > 0, {rrand(0.01, 0.9).wait; 1}, Rest())
+				\noteOrRest, Pif(seq > 0, 1, Rest())
 			)
 		);
 		}
@@ -324,12 +323,12 @@ HiHatInst : Inst {
 
 		super.instLabel.string = "hi-hat";
 
-		super.soundSource = Pdef(super.pdefId, //va fatta partire una sola volta questa merda di pdef
+		super.soundSource = Pdef(super.pdefId,
 			Pbind(
 				\instrument, \hi_hat,
 				\noteOrRest, Pif((Pseq([0,0,0,0], inf))>0,1,Rest)
 			)
-		).play(quant:4);
+		).play(quant:256);
 
 		/* ---- Hi-hat_Decay_Knob -----*/
 		g = ControlSpec.new(0.05, 1, \lin);
@@ -357,7 +356,7 @@ HiHatInst : Inst {
 		Pdef(super.pdefId,
 			Pbind(
 				\instrument, \hi_hat,
-				\noteOrRest, Pif(seq>0,{rrand(0.01, 0.9).wait; 1},Rest())
+				\noteOrRest, Pif(seq > 0, 1, Rest())
 			)
 		);
 		}
@@ -411,7 +410,7 @@ SamplerInst : Inst {
 							\args, #[\t_gate],
 							\t_gate, Pseq([0,0,0,0],inf)
 						)
-					).play(quant:4);
+					).play(quant:256);
 					//super.soundSource.set(\t_gate, 0);
 				},
 				{},
@@ -441,7 +440,7 @@ SamplerInst : Inst {
 				//\instrument, \sampler,
 				//\noteOrRest, Pif((Pseq([0,0,0,0], inf))>0,1,Rest)
 				\args, #[\t_gate],
-				\t_gate, Pif(seq>0, {rrand(0.01, 0.9).wait; 1}, Rest())
+				\t_gate, seq
 			)
 		);
 		}
@@ -478,7 +477,7 @@ CowbellInst : Inst {
 				\instrument, \cowbell,
 				\noteOrRest, Pif((Pseq([0,0,0,0], inf))>0, 1, Rest)
 			)
-		).play(quant:4);
+		).play(quant:256);
 
 		/* ---- cowbell_Tone_Knob -----*/
 		g = ControlSpec.new(0.83, 1.6, \lin);
@@ -498,7 +497,7 @@ CowbellInst : Inst {
 		Pdef(super.pdefId,
 			Pbind(
 				\instrument, \cowbell,
-				\noteOrRest, Pif(seq>0, {rrand(0.01, 0.9).wait; 1}, Rest())
+				\noteOrRest, Pif(seq > 0, 1, Rest())
 			)
 		);
 		}
