@@ -142,9 +142,6 @@ Inst {
 		humanizerKnob = EZKnob(instView,Rect(instView_width*13/16, instView_width*3/4, dim_knob_euclidean, dim_knob_euclidean),"humanizer",g,initVal:0);
 
 		humanizerKnob.action_({
-			sequence16 = EuclideanRhythmGen.compute_rhythm(seqHitsKnob.value, seqLengthKnob.value); //in 16th notes
-			sequence = EuclideanRhythmGen.convertToClockResolution(sequence16, 256);
-			sequence = RhythmEditor.humanize(sequence, 256, humanizerKnob.value);
 		});
 
 		/*--------MUTE BUTTON-----------*/
@@ -168,6 +165,22 @@ Inst {
 			instView.remove;
 			this.removePdef;
 		});
+
+		sequence = Array.fill(1024, {0});
+		//must be called once
+		this.runHumanizer(sequence, 256);
+	}
+
+	runHumanizer{ | clockRes |
+
+		var timeNow;
+
+		sequence = RhythmEditor.humanize(sequence, 256, humanizerKnob.value);
+		this.updateSequence(sequence);
+
+		//scheduling itself 4 bars later, to keep humanzing
+		timeNow = TempoClock.default.beats;
+		TempoClock.default.schedAbs(timeNow + sequence.size(), { this.runHumanizer( clockRes)});
 	}
 
 	/*UPDATES THE SEQUENCE, AFTER A CHANGE IN THE EUCLIDEAN RHYTHM PARAMETERS

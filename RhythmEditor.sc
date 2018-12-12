@@ -27,10 +27,6 @@ RhythmEditor{
 		});
 		"activated".postln;
 
-		//scheduling itself 4 bars later, to keep humanzing
-		timeNow = TempoClock.default.beats;
-		TempoClock.default.schedAbs(timeNow + 1024, { RhythmEditor.humanize(sequence, clockRes, amt) });
-
 		^sequenceConverted;
 
 	}
