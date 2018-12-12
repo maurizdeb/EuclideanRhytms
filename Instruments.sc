@@ -81,7 +81,7 @@ Inst {
 
 	classvar dim_knob_euclidean, dim_knob_sound;
 
-	var sequence16, <>sequence, <>soundSource, <>pdefId,
+	var sequence16, <>sequence, <>sequenceStraight, <>soundSource, <>pdefId,
 	    <>instLabel, muteBtn, <>closeBtn,
 	    seqHitsKnob, seqLengthKnob, seqOffsetKnob, humanizerKnob, g;
 
@@ -109,7 +109,8 @@ Inst {
 
 		seqLengthKnob.action_({
 			sequence16 = EuclideanRhythmGen.compute_rhythm(seqHitsKnob.value, seqLengthKnob.value); //in 16th notes
-			sequence = EuclideanRhythmGen.convertToClockResolution(sequence16, 256);
+			sequenceStraight = EuclideanRhythmGen.convertToClockResolution(sequence16, 256);
+			sequence = RhythmEditor.humanize(sequenceStraight, 256, humanizerKnob.value);
 			this.updateSequence(sequence);
 		});
 
@@ -118,7 +119,8 @@ Inst {
 
 		seqHitsKnob.action_({
 			sequence16 = EuclideanRhythmGen.compute_rhythm(seqHitsKnob.value, seqLengthKnob.value); //in 16th notes
-			sequence = EuclideanRhythmGen.convertToClockResolution(sequence16, 256);
+			sequenceStraight = EuclideanRhythmGen.convertToClockResolution(sequence16, 256);
+			sequence = RhythmEditor.humanize(sequenceStraight, 256, humanizerKnob.value);
 			this.updateSequence(sequence);
 		});
 
@@ -130,7 +132,8 @@ Inst {
 				var zeroOffsetSeq;
 				zeroOffsetSeq = EuclideanRhythmGen.compute_rhythm(seqHitsKnob.value, seqLengthKnob.value);
 				sequence16 = zeroOffsetSeq.rotate(seqOffsetKnob.value.asInteger); //in 16th notes
-				sequence = EuclideanRhythmGen.convertToClockResolution(sequence16, 256);
+				sequenceStraight = EuclideanRhythmGen.convertToClockResolution(sequence16, 256);
+				sequence = RhythmEditor.humanize(sequenceStraight, 256, humanizerKnob.value);
 				this.updateSequence(sequence);
 			});
 
@@ -175,7 +178,7 @@ Inst {
 
 		var timeNow;
 
-		sequence = RhythmEditor.humanize(sequence, 256, humanizerKnob.value);
+		sequence = RhythmEditor.humanize(sequenceStraight, 256, humanizerKnob.value);
 		this.updateSequence(sequence);
 
 		//scheduling itself 4 bars later, to keep humanzing

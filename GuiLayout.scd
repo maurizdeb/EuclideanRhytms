@@ -107,7 +107,7 @@ s.waitForBoot{(
 
 (
 
-//GENERAL GUI VARIABLES
+//GENERAL GUI VARIABLESs
 var w, w_width, w_height, screen_size, prop_height, prop_width,
     sidebar_width, instGrid_width, instGrid, instScroll, buttonTemplateAdd,
 //TEMPO VARIABLES
