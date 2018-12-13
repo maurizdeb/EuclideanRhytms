@@ -111,6 +111,7 @@ Inst {
 			sequence16 = EuclideanRhythmGen.compute_rhythm(seqHitsKnob.value, seqLengthKnob.value); //in 16th notes
 			sequenceStraight = EuclideanRhythmGen.convertToClockResolution(sequence16, 256);
 			sequence = RhythmEditor.humanize(sequenceStraight, 256, humanizerKnob.value);
+			soundSource.quant_([sequence.size(),0,0,1]);
 			this.updateSequence(sequence);
 		});
 
@@ -170,6 +171,7 @@ Inst {
 		});
 
 		sequence = Array.fill(1024, {0});
+		sequenceStraight = Array.fill(1024, {0});
 		//must be called once
 		this.runHumanizer(sequence, 256);
 	}
@@ -183,7 +185,7 @@ Inst {
 
 		//scheduling itself 4 bars later, to keep humanzing
 		timeNow = TempoClock.default.beats;
-		TempoClock.default.schedAbs(timeNow + sequence.size(), { this.runHumanizer( clockRes)});
+		TempoClock.default.schedAbs(timeNow + sequence.size(), {this.runHumanizer(clockRes)});
 	}
 
 	/*UPDATES THE SEQUENCE, AFTER A CHANGE IN THE EUCLIDEAN RHYTHM PARAMETERS
@@ -223,9 +225,11 @@ KickInst : Inst {
 		super.soundSource = Pdef(super.pdefId,
 			Pbind(
 				\instrument, \kick,
-				\noteOrRest, Pif((Pseq([0,0,0,0], inf))> 0, 1, Rest)
+				\noteOrRest, Pif((Pseq(Array.fill(1024, {0}), inf))> 0, 1, Rest)
 			)
-		).play(quant:256);
+		);
+		super.soundSource.quant_([1024,0,0,1]);
+		super.soundSource.play;
 
 				/* ---- Kick_Decay_Knob -----*/
 		g = ControlSpec.new(0.1, 8, \lin);
@@ -282,9 +286,11 @@ SnareInst : Inst {
 			Pbind(
 				\instrument, \snare,
 				//\level, Pseq([0,0,0,0], inf)
-				\noteOrRest, Pif((Pseq([0,0,0,0], inf))> 0, 1, Rest)
+				\noteOrRest, Pif((Pseq(Array.fill(1024, {0}), inf))> 0, 1, Rest)
 			)
-		).play(quant:256);
+		);
+		super.soundSource.quant_([1024,0,0,1]);
+		super.soundSource.play;
 
 		/* ---- Snare_Decay_Knob -----*/
 		g = ControlSpec.new(0.05, 1, \lin);
@@ -342,9 +348,11 @@ HiHatInst : Inst {
 		super.soundSource = Pdef(super.pdefId,
 			Pbind(
 				\instrument, \hi_hat,
-				\noteOrRest, Pif((Pseq([0,0,0,0], inf))>0,1,Rest)
+				\noteOrRest, Pif((Pseq(Array.fill(1024, {0}), inf))>0,1,Rest)
 			)
-		).play(quant:256);
+		);
+		super.soundSource.quant_([1024,0,0,1]);
+		super.soundSource.play;
 
 		/* ---- Hi-hat_Decay_Knob -----*/
 		g = ControlSpec.new(0.05, 1, \lin);
@@ -424,9 +432,11 @@ SamplerInst : Inst {
 							//\instrument, \sampler,
 							//\noteOrRest, Pif((Pseq([0,0,0,0], inf))>0,1,Rest)
 							\args, #[\t_gate],
-							\t_gate, Pseq([0,0,0,0],inf)
+							\t_gate, Pseq(Array.fill(1024, {0}),inf)
 						)
-					).play(quant:256);
+					);
+					super.soundSource.quant_([1024,0,0,1]);
+					super.soundSource.play;
 					//super.soundSource.set(\t_gate, 0);
 				},
 				{},
@@ -491,9 +501,11 @@ CowbellInst : Inst {
 		super.soundSource = Pdef(super.pdefId,
 			Pbind(
 				\instrument, \cowbell,
-				\noteOrRest, Pif((Pseq([0,0,0,0], inf))>0, 1, Rest)
+				\noteOrRest, Pif((Pseq(Array.fill(1024, {0}), inf))>0, 1, Rest)
 			)
-		).play(quant:256);
+		);
+		super.soundSource.quant_([1024,0,0,1]);
+		super.soundSource.play;
 
 		/* ---- cowbell_Tone_Knob -----*/
 		g = ControlSpec.new(0.83, 1.6, \lin);

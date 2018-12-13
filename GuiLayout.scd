@@ -20,7 +20,7 @@ s.waitForBoot{(
 	}).add;*/
 
 
-	SynthDef(\kick, { arg out = 0, pan = 0, amp = 0.2, punch = 0.5, decay = 0.3, mute=1;
+	SynthDef(\kick, { arg out = 0, pan = 0, amp = 0.5, punch = 0.5, decay = 0.3, mute=1;
 		var body, bodyFreq, bodyAmp,
 		    pop, popFreq, popAmp,
 		    click, clickAmp,
@@ -48,7 +48,7 @@ s.waitForBoot{(
 
 
 	//-SNARE
-	SynthDef(\snare, {arg t_gate=0, tone=1,  decay=0.1, amp=0.2, pan=0.0, mute=1;
+	SynthDef(\snare, {arg t_gate=0, tone=1,  decay=0.1, amp=0.5, pan=0.0, mute=1;
 		var ampEnv, snare;
 
 		ampEnv = EnvGen.kr(Env.perc(0.001, decay, 1, -5), doneAction:2);
@@ -60,7 +60,7 @@ s.waitForBoot{(
 
 
 	//HI-HAT
-	SynthDef(\hi_hat, { arg t_gate = 0, opening = 0.2, amp = 0.2, freq = 1, pan=0.0, mute=1;
+	SynthDef(\hi_hat, { arg t_gate = 0, opening = 0.2, amp = 0.5, freq = 1, pan=0.0, mute=1;
 
 		var hat, ampEnv;
 
@@ -76,7 +76,7 @@ s.waitForBoot{(
 
 
 	//SAMPLER
-	SynthDef(\sampler, { arg buf, rate=1, amp=0.2, t_gate=0, pan=0.0, mute=1;
+	SynthDef(\sampler, { arg buf, rate=1, amp=0.1, t_gate=0, pan=0.0, mute=1;
 
 		var sample;
 
@@ -88,7 +88,7 @@ s.waitForBoot{(
 
 
 	//-808_COWBELL
-	SynthDef(\cowbell, { arg amp=0.2, t_gate=0, fund_freq=540, pan=0.0, mute=1;
+	SynthDef(\cowbell, { arg amp=0.5, t_gate=0, fund_freq=540, pan=0.0, mute=1;
 		var cow, env;
 
 		cow = Pulse.ar( fund_freq * [ 1, 1.5085 ], [ 0.565, 0.445 ], [ 0.4, 0.6 ] ).distort;
@@ -118,7 +118,7 @@ var w, w_width, w_height, screen_size, prop_height, prop_width,
 screen_size = Window.screenBounds;
 
 //horizontal and vertical percentage of the screen to be occupied by the window
-prop_width = 0.53;
+prop_width = 0.80;
 prop_height = 0.88;
 
 w_width = (prop_width * screen_size.width).round;

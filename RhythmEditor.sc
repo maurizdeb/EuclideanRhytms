@@ -12,7 +12,7 @@ RhythmEditor{
 
 			step16_index = seqStep*(clockRes/4);                 //position of each 16th step, according to the augmented clock resolution
 
-			step_displacement = round(rrand(-32,32)*amt);        //displacement to be applied to humanize the straight sequence
+			step_displacement = round(rrand(-16,16)*amt);        //displacement to be applied to humanize the straight sequence
 			displaced_index = step16_index + step_displacement;  //new index at which we write the displaced (humanized) onset
 
 			if( displaced_index >= 0,
@@ -21,11 +21,11 @@ RhythmEditor{
 
 				},
 				{
-					sequenceConverted = sequenceConverted.put( ((nSteps*clockRes/4) + step_displacement), sequence[step16_index]);
+					sequenceConverted = sequenceConverted.put(step16_index - step_displacement, sequence[step16_index]);
 			});
 
 		});
-		"activated".postln;
+		//"activated".postln;
 
 		^sequenceConverted;
 
