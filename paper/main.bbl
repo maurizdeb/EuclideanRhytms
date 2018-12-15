@@ -6,4 +6,34 @@ Godfried Toussaint,
 \newblock Tech. {R}ep., School of Computer Science, McGill University,
   Montreal, Quebec, Canada, 2004.
 
+\bibitem{MutableInstruments:Yarns}
+O.~Gillet,
+\newblock ``Mutable instruments. yarns, eurorack for generetion of euclidean
+  rythms,''
+\newblock Available at
+  \href{https://mutable-instruments.net/modules/yarns/manual/}{https://mutable-instruments.net/modules/yarns/manual/}.
+
+\bibitem{vpme.de}
+Vladimir Pantelic,
+\newblock ``Euclidean circles eurorack,''
+\newblock Available at
+  \href{https://vpme.de/euclidean-circles/}{https://vpme.de/euclidean-circles/}.
+
+\bibitem{2hp:Euclid}
+``Modulus for generetion of euclidean rythms,''
+\newblock Available at
+  \href{http://www.twohp.com/modules/euclid}{http://www.twohp.com/modules/euclid}.
+
+\bibitem{Allouche:2002:AutomSeq:book}
+J.-P. Allouche and J.~O. Shallit, Eds.,
+\newblock {\em Automatic Sequences},
+\newblock Cambridge University Press, 2002.
+
+\bibitem{Bjorklund:2004:euclidean:rhythm}
+E.~Bjorklund,
+\newblock ``The theory of rep-rate pattern generation in the sns timing
+  system,''
+\newblock Tech. {R}ep., Los Alamos National Laboratory, Los Alamos, U.S.A,
+  2003.
+
 \end{thebibliography}
