@@ -2,9 +2,41 @@
 
 \begin{document}
 The purpose of the researchers in the past year was to find a easy way to generate all the possible rhythms present in music, in order to extend the dictionary of Automatic Music Composition\cite{Allouche:2002:AutomSeq:book}.
-The derivation of G. Touissant\cite{Toussaint:2004:euclidean:rhythm} comes from an analyisis over Bjorklund's studies on SNS accelerators\cite{Bjorklund:2004:euclidean:rhythm} in nuclear physics. In this case, time is divided into intervals and during some of these intervals a gate is to be enabled by a timing system that generates pulses that accomplish this task. The problem for a given number \textit{n} of time intervals, and another given number \begin{math}k<n\end{math} of pulses, is to distribute the pulses as evenly as possible among these intervals.\\
-In our case the algorithm to be develped take as input a tuple \textit{(k, n)}, where \textit{n} represents the length of the played sequence and \textit{k} the number of onsets inside the sequence. The output is a sequence of length \textit{n}, where the \textit{k} onsets are equally spaced inside the sequence. For example, if we consider the tuple \textit{(4, 16)}, the result has to be a sequence like:\\
+Before proceeding with the implementation of the drum machine, it’s necessary to dwelve into the algorithm of Euclid and explain what it has to do with rhythm generation.\\
+In order to compute the greatest common divisor between two integers, the greek mathematician proposed this solution:
+The smaller number is repeatedly subtracted from the greater until the greater is zero or becomes smaller than the smaller, in which case it is called the remainder. This remainder is then repeatedly subtracted from the smaller number to obtain a new remainder. This process is continued until the remainder is zero\cite{Euclid:Elements}. 
+The same procedure can be done more efficiently with divisions.\\
 [2mm]
-[1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]
-\\
+\begin{algorithm}
+\label{euclid}
+\begin{algorithmic}[1]
+\Procedure{euclid}{$m,k$}
+\If {$k == 0$}
+\State \Return $m$
+\Else
+\State \Return{\Call {euclid}{$k, m \mod k$}}
+
+\EndIf
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}\\
+[3mm]
+The derivation of G. Touissant\cite{Toussaint:2004:euclidean:rhythm} comes from an analyisis over Bjorklund's studies on SNS accelerators\cite{Bjorklund:2004:euclidean:rhythm} in nuclear physics. In this case, time is divided into intervals and during some of these intervals an onset is to be enabled by a timing system that generates pulses that accomplish this task. The problem for a given number \textit{n} of time intervals, and another given number \begin{math}k<n\end{math} of pulses, is to distribute the pulses as evenly as possible among these intervals.\\
+In our case the algorithm to be develped take as input a tuple \begin{math}{(k, n)}\end{math}, where \begin{math}{n}\end{math} represents the length of the played sequence and \begin{math}{k}\end{math} the number of onsets inside the sequence. The output is a sequence of length \begin{math}{n}\end{math}, where the \begin{math}{k}\end{math} onsets are equally spaced inside the sequence. For example, if we consider the tuple \begin{math}{(4, 16)}\end{math}, the result has to be a sequence like:\\
+[2mm]
+[1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]\\
+[3mm]
 \end{document}
+
+%Before proceeding with the implementation of the drum machine, it’s necessary to dwelve into the algorithm of Euclid and explain what it has to do with rhythm generation.
+ %In order to compute the greatest common divisor between two integers, the greek mathematician proposed this solution:
+%The smaller number is repeatedly subtracted from the greater until the greater is zero or becomes smaller than the smaller, in which case it is called the remainder. This remainder is then repeatedly subtracted from the smaller number to obtain a new remainder. This process is continued until the remainder is zero. 
+%The same procedure can be done more efficiently with divisions.
+
+%EUCLID(m, k)
+ %1. if k = 0
+ %2. then return m 
+ %3. else return EUCLID(k,m mod k)
+%If m and k are intended as the number of zero’s and one’s, respectively, in a binary sequence (with n = m+k), the structure of this algorithm can be exploited to produce an array of zero’s and one’s and use the one’s as the onset in a rhythmic pattern. In this case m will be the greater number,  and it will represent the sequence length, k will represent the number of onsets to distribute as evenly as possible in the sequence.
+%As an example ….
+%It is also well known that if algorithm EUCLID(m, k) is applied to two O(n) bit numbers (binary sequences of length n) it will perform O(n) arithmetic operations in the worst case [8 del paper euclideo]
