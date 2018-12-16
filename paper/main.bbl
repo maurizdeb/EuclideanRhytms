@@ -1,4 +1,4 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
 
 \bibitem{Toussaint:2004:euclidean:rhythm}
 Godfried Toussaint,
@@ -39,5 +39,22 @@ E.~Bjorklund,
   system,''
 \newblock Tech. {R}ep., Los Alamos National Laboratory, Los Alamos, U.S.A,
   2003.
+
+\bibitem{Klower:1997}
+Tom Klower,
+\newblock {\em The Joy of Drumming: Drums and Percussion Instruments from
+  Around the World},
+\newblock Binkey Kok Publications, Diever, Holland, 1997.
+
+\bibitem{Keith:1991}
+Michael Keith,
+\newblock {\em From Polychords to Pólya: Adventures in Musical Combinatorics},
+\newblock Vinculum Press, Princeton, 1991.
+
+\bibitem{Behague:1973}
+Gerard Behague,
+\newblock ``Bossa and bossas: recent changes in brazilian urban popular
+  music,''
+\newblock {\em Ethnomusicology}, vol. 17, no. 2, pp. 209--233, 1973.
 
 \end{thebibliography}
