@@ -21,11 +21,17 @@ The same procedure can be done more efficiently with divisions.\\
 \end{algorithmic}
 \end{algorithm}\\
 [3mm]
-The derivation of G. Touissant\cite{Toussaint:2004:euclidean:rhythm} comes from an analyisis over Bjorklund's studies on SNS accelerators\cite{Bjorklund:2004:euclidean:rhythm} in nuclear physics. In this case, time is divided into intervals and during some of these intervals an onset is to be enabled by a timing system that generates pulses that accomplish this task. The problem for a given number \textit{n} of time intervals, and another given number \begin{math}k<n\end{math} of pulses, is to distribute the pulses as evenly as possible among these intervals.\\
+The derivation of G. Touissant\cite{Toussaint:2004:euclidean:rhythm} comes from an analyisis over Bjorklund's studies on SNS accelerators\cite{Bjorklund:2003:euclidean:rhythm} in nuclear physics. In this case, time is divided into intervals and during some of these intervals an onset is to be enabled by a timing system that generates pulses that accomplish this task. The problem for a given number \textit{n} of time intervals, and another given number \begin{math}k<n\end{math} of pulses, is to distribute the pulses as evenly as possible among these intervals.\\
 In our case the algorithm to be develped take as input a tuple \begin{math}{(k, n)}\end{math}, where \begin{math}{n}\end{math} represents the length of the played sequence and \begin{math}{k}\end{math} the number of onsets inside the sequence. The output is a sequence of length \begin{math}{n}\end{math}, where the \begin{math}{k}\end{math} onsets are equally spaced inside the sequence. For example, if we consider the tuple \begin{math}{(4, 16)}\end{math}, the result has to be a sequence like:\\
 [2mm]
 [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]\\
 [3mm]
+As Touissant explains in his work\cite{Toussaint:2004:euclidean:rhythm}, with this mechanism we can produce all the possible rhythmic sequences, linking them to a specific musical genre. For instance:
+\begin{itemize}[noitemsep]
+\item \begin{math}E(2,3)=[1,0,1]\end{math} is a common Afro-Cuban drum pattern. For example, it is the conga rhythm of the (6/8)-time Swing Tumbao
+\item more responsibility
+\item more satisfaction
+\end{itemize}
 \end{document}
 
 %Before proceeding with the implementation of the drum machine, it’s necessary to dwelve into the algorithm of Euclid and explain what it has to do with rhythm generation.
