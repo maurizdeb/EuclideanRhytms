@@ -7,45 +7,47 @@ Warning--empty author in 2hp:Euclid
 Warning--empty publisher in Allouche:2002:AutomSeq:book
 Warning--empty publisher in Euclid:Elements
 Warning--empty year in Euclid:Elements
-You've used 7 entries,
+Warning--empty publisher in Klower:1997
+Warning--empty publisher in Keith:1991
+You've used 10 entries,
             1838 wiz_defined-function locations,
-            490 strings with 4648 characters,
-and the built_in function-call counts, 847 in all, are:
-= -- 71
-> -- 30
+            510 strings with 5055 characters,
+and the built_in function-call counts, 1369 in all, are:
+= -- 118
+> -- 42
 < -- 0
-+ -- 14
-- -- 7
-* -- 43
-:= -- 159
-add.period$ -- 7
-call.type$ -- 7
-change.case$ -- 7
++ -- 20
+- -- 10
+* -- 79
+:= -- 241
+add.period$ -- 10
+call.type$ -- 10
+change.case$ -- 8
 chr.to.int$ -- 0
-cite$ -- 11
-duplicate$ -- 45
-empty$ -- 87
-format.name$ -- 7
-if$ -- 178
+cite$ -- 16
+duplicate$ -- 73
+empty$ -- 148
+format.name$ -- 10
+if$ -- 295
 int.to.chr$ -- 0
-int.to.str$ -- 7
-missing$ -- 3
-newline$ -- 36
-num.names$ -- 7
-pop$ -- 23
+int.to.str$ -- 10
+missing$ -- 8
+newline$ -- 51
+num.names$ -- 10
+pop$ -- 38
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 0
-skip$ -- 11
+skip$ -- 15
 stack$ -- 0
-substring$ -- 0
-swap$ -- 2
+substring$ -- 25
+swap$ -- 5
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
 type$ -- 0
-warning$ -- 4
-while$ -- 6
-width$ -- 8
-write$ -- 66
-(There were 4 warnings)
+warning$ -- 6
+while$ -- 11
+width$ -- 12
+write$ -- 97
+(There were 6 warnings)
