@@ -88,7 +88,7 @@ SoundsLoader {
 
 
 		//-808_COWBELL
-		SynthDef(\cowbell, { arg amp=0.5, fund_freq=540, pan=0.0, mute=1;
+		SynthDef(\cowbell, { arg mute=1, amp=0.5, fund_freq=540, pan=0.0;
 			var cow, env;
 
 			cow = Pulse.ar( fund_freq * [ 1, 1.5085 ], [ 0.565, 0.445 ], [ 0.4, 0.6 ] ).distort;
@@ -101,6 +101,34 @@ SoundsLoader {
 			cow = BPF.ar( cow, fund_freq * 2, 1.808 );
 
 			Out.ar( 0, Pan2.ar( cow, pan, amp*mute ) );
+		}).add;
+
+		//KALIMBA
+		SynthDef(\kalimba, { arg mute = 1, amp = 0.1, freq = 440, freqMod = 1, mix = 0.1, relMin = 2.5, relMax = 3.5;
+
+			//Kalimba based on bank of resonators
+			var snd;
+			// Basic tone is a SinOsc
+			snd = SinOsc.ar(freq*freqMod) * EnvGen.ar(Env.perc(0.005, Rand(relMin, relMax), 1, -8), doneAction: 2);
+			// The "clicking" sounds are modeled with a bank of resonators excited by enveloped pink noise
+			snd = (snd * (1 - mix)) + (DynKlank.ar(`[
+				// the resonant frequencies are randomized a little to add variation
+				// there are two high resonant freqs and one quiet "bass" freq to give it some depth
+				[240*ExpRand(0.9, 1.1), 2020*ExpRand(0.9, 1.1), 3151*ExpRand(0.9, 1.1)],
+				[-7, 0, 3].dbamp,
+				[0.8, 0.05, 0.07]
+			], PinkNoise.ar * EnvGen.ar(Env.perc(0.001, 0.01))) * mix);
+			Out.ar(0, Pan2.ar(snd, 0, amp*mute));
+		}).add;
+
+		//MARIMBA
+		SynthDef(\marimba, {arg mute = 1, amp = 0.4, freq = 440, releaseMod = 1, freqMod = 1;
+			var snd, env;
+			env = Env.linen(0.015, 1, 0.5*releaseMod, amp).kr(doneAction: 2);
+			snd = BPF.ar(Saw.ar(0), freq*freqMod, 0.02);
+			snd = BLowShelf.ar(snd, 220, 0.81, 6);
+			snd = snd * env;
+			Out.ar(0, Pan2.ar(snd, 0, amp*mute));
 		}).add;
 
 	}

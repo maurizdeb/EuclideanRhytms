@@ -50,7 +50,11 @@ InstFactory {
 
 		{ name == "sampler" }   { instance = SamplerInst.new }
 
-		{ name == "cowbell" }   { instance = CowbellInst.new };
+		{ name == "cowbell" }   { instance = CowbellInst.new }
+
+		{ name == "kalimba" }   { instance = KalimbaInst.new }
+
+		{ name == "marimba" }   { instance = MarimbaInst.new };
 
 		instance.pdefId = this.prGenIstrumetId;
 		^instance;
@@ -58,7 +62,7 @@ InstFactory {
 	}
 
 	*getInstuments {
-		^["SELECT INSTRUMENT","kick", /*"kick808",*/ "snare", "snare909", "hi-hat", "sampler", "cowbell"];
+		^["SELECT INSTRUMENT","kick", /*"kick808",*/ "snare", "snare909", "hi-hat", "sampler", "cowbell", "kalimba", "marimba"];
 	}
 
 	//PRIVATE METHOD SHOULD NOT BE CALLED FROM OUTSIDE
@@ -207,8 +211,7 @@ Inst {
 
 KickInst : Inst {
 
-	var instView, kickTextBtn, decayKnob, punchKnob, compKnob,
-	    g;
+	var instView, decayKnob, punchKnob, compKnob;
 
 	/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
 	createView{ | templateView |
@@ -235,11 +238,11 @@ KickInst : Inst {
 		//DECAY
 		decayKnob = super.paramSet.addParameter(name:"decay", minVal:0.1, maxVal:8, initVal:1, stepSize:0.1);
 		decayKnob.action_({
-			super.soundSource.set(\decay,decayKnob.value);;
+			super.soundSource.set(\decay,decayKnob.value);
 		});
 		//PUNCH
-		snareToneKnob = super.paramSet.addParameter(name:"punch", minVal:0, maxVal:1, initVal:0.55, stepSize:0.1);
-		snareToneKnob.action_({
+		punchKnob = super.paramSet.addParameter(name:"punch", minVal:0, maxVal:1, initVal:0.55, stepSize:0.1);
+		punchKnob.action_({
 			super.soundSource.set(\punch,punchKnob.value);
 		});
 
@@ -261,11 +264,12 @@ KickInst : Inst {
 	removePdef{
 		Pdef(super.pdefId).remove;
 	}
+
 }
 
 SnareInst : Inst {
 
-	var instView, snareTextBtn, snareDecayKnob, snareToneKnob, g;
+	var instView, snareDecayKnob, snareToneKnob;
 
 	/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
 	createView{ | templateView |
@@ -322,7 +326,7 @@ SnareInst : Inst {
 
 Snare909Inst : Inst {
 
-	var instView, snareTextBtn, snare909DecayKnob, snare909ToneKnob, g;
+	var instView, snare909DecayKnob, snare909ToneKnob;
 
 	/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
 	createView{ | templateView |
@@ -380,7 +384,7 @@ Snare909Inst : Inst {
 
 HiHatInst : Inst {
 
-	var instView, hi_hatTextBtn, hi_hatDecayKnob, hi_hatToneKnob,
+	var instView, hi_hatDecayKnob, hi_hatToneKnob,
 	g;
 
 	/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
@@ -439,7 +443,7 @@ HiHatInst : Inst {
 
 SamplerInst : Inst {
 
-	var instView, samplerTextBtn, samplerLoadBtn, sample_rate_knob, b, synth,
+	var instView, samplerLoadBtn, sample_rate_knob, b, synth,
 	g;
 
 	/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
@@ -530,7 +534,7 @@ SamplerInst : Inst {
 
 CowbellInst : Inst {
 
-	var instView, cowbellTextBtn, cowbellToneKnob;
+	var instView, cowbellToneKnob;
 
 		/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
 	createView{ | templateView |
@@ -579,26 +583,142 @@ CowbellInst : Inst {
 	}
 }
 
+KalimbaInst : Inst {
+
+	var instView, kalimbaToneKnob, kalimbaHarmonicity;
+
+		/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
+	createView{ | templateView |
+
+		instView = CompositeView.new(templateView, Rect(0, 0, templateView.bounds.width, templateView.bounds.height) );
+		instView.background = Color.grey;
+
+		super.initializeSequencerGui(instView);
+
+		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
+
+		super.instLabel.string = "kalimba";
+
+		super.soundSource = Pdef(super.pdefId,
+			Pbind(
+				\instrument, \kalimba,
+				\noteOrRest, Pif((Pseq(Array.fill(1024, {0}), inf))>0, 1, Rest)
+			)
+		);
+		super.soundSource.quant_([1024,0,0,1]);
+		super.soundSource.play;
+
+		/*---------------------SOUND PARAMETERS-----------------------------*/
+		kalimbaToneKnob = super.paramSet.addParameter(name:"tone", minVal:0.5, maxVal:2, initVal:1, stepSize:0.1);
+		kalimbaToneKnob.action_({
+			super.soundSource.set(\freqMod, kalimbaToneKnob.value);
+		});
+
+		kalimbaHarmonicity = super.paramSet.addParameter(name:"timbre", minVal:0.1, maxVal:0.5, initVal:0.1, stepSize:0.1);
+		kalimbaHarmonicity.action_({
+			super.soundSource.set(\mix, kalimbaHarmonicity.value);
+		});
+
+		/*-----------END INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
+
+	}
+
+	/*UPDATES THE SEQUENCE WHEN AN EUCLIDEAN PARAMETER IS UPDATED*/
+		updateSequence{ | sequence |
+		var seq = Pseq(sequence, inf);
+		Pdef(super.pdefId,
+			Pbind(
+				\instrument, \kalimba,
+				\noteOrRest, Pif(seq > 0, 1, Rest())
+			)
+		);
+		}
+
+	removePdef{
+		Pdef(super.pdefId).remove;
+	}
+}
+
+MarimbaInst : Inst {
+
+	var instView, marimbaToneKnob, marimbaReleaseKnob;
+
+		/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
+	createView{ | templateView |
+
+		instView = CompositeView.new(templateView, Rect(0, 0, templateView.bounds.width, templateView.bounds.height) );
+		instView.background = Color.grey;
+
+		super.initializeSequencerGui(instView);
+
+		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
+
+		super.instLabel.string = "marimba";
+
+		super.soundSource = Pdef(super.pdefId,
+			Pbind(
+				\instrument, \marimba,
+				\noteOrRest, Pif((Pseq(Array.fill(1024, {0}), inf))>0, 1, Rest)
+			)
+		);
+		super.soundSource.quant_([1024,0,0,1]);
+		super.soundSource.play;
+
+		/*---------------------SOUND PARAMETERS-----------------------------*/
+		marimbaToneKnob = super.paramSet.addParameter(name:"tone", minVal:0.5, maxVal:2, initVal:1, stepSize:0.1);
+		marimbaToneKnob.action_({
+			super.soundSource.set(\freqMod, marimbaToneKnob.value);
+		});
+
+		marimbaReleaseKnob = super.paramSet.addParameter(name:"release", minVal:0.25, maxVal:2, initVal:1, stepSize:0.1);
+		marimbaReleaseKnob.action_({
+			super.soundSource.set(\releaseMod, marimbaReleaseKnob.value);
+		});
+
+		/*-----------END INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
+
+	}
+
+	/*UPDATES THE SEQUENCE WHEN AN EUCLIDEAN PARAMETER IS UPDATED*/
+		updateSequence{ | sequence |
+		var seq = Pseq(sequence, inf);
+		Pdef(super.pdefId,
+			Pbind(
+				\instrument, \marimba,
+				\noteOrRest, Pif(seq > 0, 1, Rest())
+			)
+		);
+		}
+
+	removePdef{
+		Pdef(super.pdefId).remove;
+	}
+}
+
 //A set of parameters for the instrument (SynthDefs loaded by the SoundsLoader)
 SoundParameters {
 
 	classvar paramSet,
-	         dim_knob_sound;
+	         dim_knob;
 
 	*new{ arg instView;
+
 		paramSet = CompositeView( instView, Rect( 0, (instView.bounds.height/5), instView.bounds.width, (instView.bounds.height/5)));
-		paramSet.background = Color.fromHexString("30ECF5");
+		paramSet.background = Color.fromHexString("30ECF6");
 		paramSet.addFlowLayout(margin:(instView.bounds.width/5)@20, gap:(instView.bounds.width/7)@0);
 
-		dim_knob_sound = instView.bounds.width/5;
+		dim_knob = instView.bounds.width/5;
 
 		^super.new;
 	}
 
 	addParameter{ | name, minVal, maxVal, initVal, stepSize |
+
 		var knob,cntrlSpec;
+
 		cntrlSpec = ControlSpec.new(minVal, maxVal, \lin);
-		knob = EZKnob(paramSet, Rect(0, 0, dim_knob_sound, dim_knob_sound),name, cntrlSpec, initVal:initVal);
+		knob = EZKnob(paramSet, Rect(0, 0, dim_knob, dim_knob),name, cntrlSpec, initVal:initVal);
+
 		^knob;
 	}
 }
