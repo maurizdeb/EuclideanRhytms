@@ -41,18 +41,18 @@ SoundsLoader {
 		}).add;
 
 		//SNARE909
-		SynthDef(\snare909,{ |out=0, amp=1, mute=1, velocity=1, decay=1, tone=1|
+		SynthDef(\snare909,{ |out=0, amp=1, mute=1, velocity=1, decay=1, splendore=1|
 			var excitation, membrane;
 
-			excitation = LPF.ar(WhiteNoise.ar(1), 7040, 1) * (0.1 + velocity);
+			excitation = LPF.ar(WhiteNoise.ar(1), 7040*splendore, 1) * (0.1 + velocity);
 			membrane = (
 				/* Two simple enveloped oscillators represent the loudest resonances of the drum membranes */
-				(LFTri.ar(330*tone, 0, 1) * EnvGen.ar(Env.perc(0.0005,0.055*decay),doneAction:2) * 0.25)
-				+(LFTri.ar(185*tone, 0, 1) * EnvGen.ar(Env.perc(0.0005,0.075*decay),doneAction:2) * 0.25)
+				(LFTri.ar(330, 0, 1) * EnvGen.ar(Env.perc(0.0005,0.055*decay),doneAction:0) * 0.25)
+				+(LFTri.ar(185, 0, 1) * EnvGen.ar(Env.perc(0.0005,0.075*decay),doneAction:0) * 0.25)
 
 				/* Filtered white noise represents the snare */
 				+(excitation * EnvGen.ar(Env.perc(0.0005,0.4*decay),doneAction:2) * 0.2)
-				+(HPF.ar(excitation, 523, 1) * EnvGen.ar(Env.perc(0.0005,0.283*decay),doneAction:2) * 0.2)
+				+(HPF.ar(excitation, 523*splendore, 1) * EnvGen.ar(Env.perc(0.0005,0.283*decay),doneAction:0) * 0.2)
 
 			) * amp;
 			Out.ar(out, membrane!2, amp*mute);
@@ -60,18 +60,12 @@ SoundsLoader {
 
 
 		//HI-HAT
-		SynthDef(\hi_hat, { arg opening = 0.2, amp = 0.5, freq = 1, pan=0.0, mute=1;
-
-			var hat, ampEnv;
-
-			hat = LPF.ar(SinOsc.ar(6000*freq, mul: 0.1) - PinkNoise.ar(1), 12000);
-			hat = HPF.ar(hat,4000);
-
-			ampEnv = EnvGen.kr(Env.perc(0.001, opening, 1, -5), doneAction:2);
-
-			hat = (hat * ampEnv);
-
-			Out.ar(0, Pan2.ar(hat, pan, amp*mute) );
+		SynthDef("hihat", {arg out = 0, amp = 0.5, att = 0.01, rel = 0.2, ffreq = 6000, pan = 0, decay = 1, tone = 1, mute = 1;
+			var env, snd;
+			env = Env.perc(att, rel*decay, amp).kr(doneAction: 2);
+			snd = WhiteNoise.ar;
+			snd = HPF.ar(in: snd, freq: ffreq*tone, mul: env);
+			Out.ar(out, Pan2.ar(snd, pan, amp*mute));
 		}).add;
 
 
@@ -131,7 +125,41 @@ SoundsLoader {
 			Out.ar(0, Pan2.ar(snd, 0, amp*mute));
 		}).add;
 
+		//SOShats
+		SynthDef(\SOShats,
+			{arg out = 0, freq = 6000, sustain = 0.1, amp = 0.8, decay = 1, tone = 1, mute = 1;
+				var root_cymbal, root_cymbal_square, root_cymbal_pmosc;
+				var initial_bpf_contour, initial_bpf, initial_env;
+				var body_hpf, body_env;
+				var cymbal_mix;
+
+				root_cymbal_square = Pulse.ar(freq*tone, 0.5, mul: 1);
+				root_cymbal_pmosc = PMOsc.ar(root_cymbal_square,
+					[freq*1.34*tone, freq*2.405*tone, freq*3.09*tone, freq*1.309*tone],
+					[310/1.3, 26/0.5, 11/3.4, 0.72772],
+					mul: 1,
+					add: 0);
+				root_cymbal = Mix.new(root_cymbal_pmosc);
+				initial_bpf_contour = Line.kr(15000, 9000, 0.1);
+				initial_env = EnvGen.ar(Env.perc(0.005, 0.1), 1.0);
+				initial_bpf = BPF.ar(root_cymbal, initial_bpf_contour, mul:initial_env);
+				body_env = EnvGen.ar(Env.perc(0.005, sustain*decay, 1, -2), 1.0, doneAction: 2);
+				body_hpf = HPF.ar(in: root_cymbal, freq: Line.kr(9000, 12000, sustain),mul: body_env, add: 0);
+				cymbal_mix = Mix.new([initial_bpf, body_hpf]) * amp;
+				Out.ar(out, Pan2.ar(cymbal_mix, 0, amp*mute));
+		}).add;
+
+		SynthDef("kick_808", {arg out = 0, freq1 = 240, freq2 = 60, amp = 1, ringTime = 10, rel = 1, dist = 0.5, pan = 0, tone = 1, decay = 1, mute = 1;
+			var snd, env;
+			snd = Ringz.ar(
+				in: Impulse.ar(0), // single impulse
+				freq: XLine.ar(freq1*tone, freq2*tone, 0.1),
+				decaytime: ringTime);
+			env = EnvGen.ar(Env.perc(0.001, rel*decay, amp), doneAction: 2);
+			snd = (1.0 - dist) * snd + (dist * (snd.distort));
+			snd = snd * env;
+			Out.ar(0, Pan2.ar(snd, pan, amp*mute));
+		}).add;
+
 	}
 }
-
-//Synth(\snare909).play;

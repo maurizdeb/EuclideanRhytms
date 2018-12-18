@@ -15,6 +15,8 @@
 \usepackage[framed,numbered]{sclang-prettifier}
 \usepackage[T1]{fontenc}
 
+\renewcommand{\lstlistingname}{Code}% Listing -> Algorithm
+\renewcommand{\lstlistlistingname}{List of \lstlistingname s}
 \lstset{numbers=left,numberblanklines=false,escapeinside=@@, keywordstyle = [2]{\scenvvarstyle}, otherkeywords={arg,this}, morekeywords=[2]{arg,this}}
 \let\origthelstnumber\thelstnumber
 \makeatletter

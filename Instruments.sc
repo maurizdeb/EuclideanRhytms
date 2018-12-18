@@ -13,7 +13,7 @@ TemplateInstGUI{
 
 		//CREATES A MENU IN IT
 		m = PopUpMenu(templateView, Rect(0, 0, instGrid_width/4, instGrid_width/20));
-		m.items = InstFactory.getInstuments;
+		m.items = InstFactory.getInstruments;
 
 		m.background_(Color.fromHexString("30ECF8"));  // only changes the look of displayed item
 		m.stringColor_(Color.black);   // only changes the look of displayed item
@@ -40,7 +40,7 @@ InstFactory {
 
 		{ name == "kick" }   { instance = KickInst.new}
 
-		//{ name == "kick808" } { instance = nil }
+		{ name == "kick808" } { instance = Kick808Inst.new }
 
 		{ name == "snare" } { instance = SnareInst.new }
 
@@ -54,15 +54,17 @@ InstFactory {
 
 		{ name == "kalimba" }   { instance = KalimbaInst.new }
 
-		{ name == "marimba" }   { instance = MarimbaInst.new };
+		{ name == "marimba" }   { instance = MarimbaInst.new }
+
+		{ name == "SOShats"} { instance = SOShatsInst.new};
 
 		instance.pdefId = this.prGenIstrumetId;
 		^instance;
 
 	}
 
-	*getInstuments {
-		^["SELECT INSTRUMENT","kick", /*"kick808",*/ "snare", "snare909", "hi-hat", "sampler", "cowbell", "kalimba", "marimba"];
+	*getInstruments {
+		^["SELECT INSTRUMENT","kick", "kick808", "snare", "snare909", "hi-hat", "sampler", "cowbell", "kalimba", "marimba", "SOShats"];
 	}
 
 	//PRIVATE METHOD SHOULD NOT BE CALLED FROM OUTSIDE
@@ -236,12 +238,12 @@ KickInst : Inst {
 
 		/*---------------------SOUND PARAMETERS-----------------------------*/
 		//DECAY
-		decayKnob = super.paramSet.addParameter(name:"decay", minVal:0.1, maxVal:8, initVal:1, stepSize:0.1);
+		decayKnob = super.paramSet.addParameter(name:"decay", minVal:0.1, maxVal:8, initVal:1);
 		decayKnob.action_({
 			super.soundSource.set(\decay,decayKnob.value);
 		});
 		//PUNCH
-		punchKnob = super.paramSet.addParameter(name:"punch", minVal:0, maxVal:1, initVal:0.55, stepSize:0.1);
+		punchKnob = super.paramSet.addParameter(name:"punch", minVal:0, maxVal:1, initVal:0.55);
 		punchKnob.action_({
 			super.soundSource.set(\punch,punchKnob.value);
 		});
@@ -295,12 +297,12 @@ SnareInst : Inst {
 
 		/*---------------------SOUND PARAMETERS-----------------------------*/
 		//DECAY
-		snareDecayKnob = super.paramSet.addParameter(name:"decay", minVal:0.05, maxVal:1, initVal:0.1, stepSize:0.1);
+		snareDecayKnob = super.paramSet.addParameter(name:"decay", minVal:0.05, maxVal:1, initVal:0.1);
 		snareDecayKnob.action_({
 			super.soundSource.set(\decay,snareDecayKnob.value);
 		});
 		//TONE
-		snareToneKnob = super.paramSet.addParameter(name:"tone", minVal:0.7, maxVal:1.3, initVal:1, stepSize:0.1);
+		snareToneKnob = super.paramSet.addParameter(name:"tone", minVal:0.7, maxVal:1.3, initVal:1);
 		snareToneKnob.action_({
 			super.soundSource.set(\tone,snareToneKnob.value);
 		});
@@ -352,14 +354,14 @@ Snare909Inst : Inst {
 
 		/*---------------------SOUND PARAMETERS-----------------------------*/
 		//DECAY
-		snare909DecayKnob = super.paramSet.addParameter(name:"decay", minVal:0.7, maxVal:1.4, initVal:1, stepSize:0.1);
+		snare909DecayKnob = super.paramSet.addParameter(name:"decay", minVal:0.7, maxVal:1.4, initVal:1);
 		snare909DecayKnob.action_({
 			super.soundSource.set(\decay, snare909DecayKnob.value);
 		});
 		//TONE
-		snare909ToneKnob = super.paramSet.addParameter(name:"tone", minVal:0.5, maxVal:1.5, initVal:1, stepSize:0.1);
+		snare909ToneKnob = super.paramSet.addParameter(name:"brightness", minVal:0.5, maxVal:1.5, initVal:1);
 		snare909ToneKnob.action_({
-			super.soundSource.set(\tone, snare909ToneKnob.value);
+			super.soundSource.set(\splendore, snare909ToneKnob.value);
 		});
 
 		/*-----------END INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
@@ -371,7 +373,7 @@ Snare909Inst : Inst {
 		var seq = Pseq(sequence, inf);
 		Pdef(super.pdefId,
 			Pbind(
-				\instrument, \snare,
+				\instrument, \snare909,
 				\noteOrRest, Pif(seq > 0, 1, Rest())
 			)
 		);
@@ -401,7 +403,7 @@ HiHatInst : Inst {
 
 		super.soundSource = Pdef(super.pdefId,
 			Pbind(
-				\instrument, \hi_hat,
+				\instrument, \hihat,
 				\noteOrRest, Pif((Pseq(Array.fill(1024, {0}), inf))>0,1,Rest)
 			)
 		);
@@ -410,12 +412,12 @@ HiHatInst : Inst {
 
 		/*---------------------SOUND PARAMETERS-----------------------------*/
 		//DECAY
-		hi_hatDecayKnob = super.paramSet.addParameter(name:"decay", minVal:0.05, maxVal:1, initVal:0.1, stepSize:0.1);
+		hi_hatDecayKnob = super.paramSet.addParameter(name:"decay", minVal:0.05, maxVal:1, initVal:0.1);
 		hi_hatDecayKnob.action_({
 			super.soundSource.set(\opening,hi_hatDecayKnob.value);
 		});
 		//TONE
-		hi_hatToneKnob = super.paramSet.addParameter(name:"tone", minVal:0.83, maxVal:1.6, initVal:1, stepSize:0.1);
+		hi_hatToneKnob = super.paramSet.addParameter(name:"tone", minVal:0.83, maxVal:1.6, initVal:1);
 		hi_hatToneKnob.action_({
 			super.soundSource.set(\freq,hi_hatToneKnob.value);
 		});
@@ -429,7 +431,7 @@ HiHatInst : Inst {
 		var seq = Pseq(sequence, inf);
 		Pdef(super.pdefId,
 			Pbind(
-				\instrument, \hi_hat,
+				\instrument, \hihat,
 				\noteOrRest, Pif(seq > 0, 1, Rest())
 			)
 		);
@@ -558,7 +560,7 @@ CowbellInst : Inst {
 		super.soundSource.play;
 
 		/*---------------------SOUND PARAMETERS-----------------------------*/
-		cowbellToneKnob = super.paramSet.addParameter(name:"tone", minVal:0.83, maxVal:1.6, initVal:1, stepSize:0.1);
+		cowbellToneKnob = super.paramSet.addParameter(name:"tone", minVal:0.83, maxVal:1.6, initVal:1);
 		cowbellToneKnob.action_({
 			super.soundSource.set(\fund_freq, 240+(cowbellToneKnob.value*300));
 		});
@@ -609,12 +611,12 @@ KalimbaInst : Inst {
 		super.soundSource.play;
 
 		/*---------------------SOUND PARAMETERS-----------------------------*/
-		kalimbaToneKnob = super.paramSet.addParameter(name:"tone", minVal:0.5, maxVal:2, initVal:1, stepSize:0.1);
+		kalimbaToneKnob = super.paramSet.addParameter(name:"tone", minVal:0.5, maxVal:2, initVal:1);
 		kalimbaToneKnob.action_({
 			super.soundSource.set(\freqMod, kalimbaToneKnob.value);
 		});
 
-		kalimbaHarmonicity = super.paramSet.addParameter(name:"timbre", minVal:0.1, maxVal:0.5, initVal:0.1, stepSize:0.1);
+		kalimbaHarmonicity = super.paramSet.addParameter(name:"timbre", minVal:0.1, maxVal:0.5, initVal:0.1);
 		kalimbaHarmonicity.action_({
 			super.soundSource.set(\mix, kalimbaHarmonicity.value);
 		});
@@ -665,12 +667,12 @@ MarimbaInst : Inst {
 		super.soundSource.play;
 
 		/*---------------------SOUND PARAMETERS-----------------------------*/
-		marimbaToneKnob = super.paramSet.addParameter(name:"tone", minVal:0.5, maxVal:2, initVal:1, stepSize:0.1);
+		marimbaToneKnob = super.paramSet.addParameter(name:"tone", minVal:0.5, maxVal:2, initVal:1);
 		marimbaToneKnob.action_({
 			super.soundSource.set(\freqMod, marimbaToneKnob.value);
 		});
 
-		marimbaReleaseKnob = super.paramSet.addParameter(name:"release", minVal:0.25, maxVal:2, initVal:1, stepSize:0.1);
+		marimbaReleaseKnob = super.paramSet.addParameter(name:"release", minVal:0.25, maxVal:2, initVal:1);
 		marimbaReleaseKnob.action_({
 			super.soundSource.set(\releaseMod, marimbaReleaseKnob.value);
 		});
@@ -685,6 +687,120 @@ MarimbaInst : Inst {
 		Pdef(super.pdefId,
 			Pbind(
 				\instrument, \marimba,
+				\noteOrRest, Pif(seq > 0, 1, Rest())
+			)
+		);
+		}
+
+	removePdef{
+		Pdef(super.pdefId).remove;
+	}
+}
+
+SOShatsInst : Inst {
+
+	var instView, soshatsToneKnob, soshatsDecayKnob;
+
+		/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
+	createView{ | templateView |
+
+		instView = CompositeView.new(templateView, Rect(0, 0, templateView.bounds.width, templateView.bounds.height) );
+		instView.background = Color.grey;
+
+		super.initializeSequencerGui(instView);
+
+		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
+
+		super.instLabel.string = "SOShats";
+
+		super.soundSource = Pdef(super.pdefId,
+			Pbind(
+				\instrument, \SOShats,
+				\noteOrRest, Pif((Pseq(Array.fill(1024, {0}), inf))>0, 1, Rest)
+			)
+		);
+		super.soundSource.quant_([1024,0,0,1]);
+		super.soundSource.play;
+
+		/*---------------------SOUND PARAMETERS-----------------------------*/
+		soshatsToneKnob = super.paramSet.addParameter(name:"tone", minVal:0.5, maxVal:2, initVal:1);
+		soshatsToneKnob.action_({
+			super.soundSource.set(\tone, soshatsToneKnob.value);
+		});
+
+		soshatsDecayKnob = super.paramSet.addParameter(name:"decay", minVal:0.25, maxVal:2, initVal:1);
+		soshatsDecayKnob.action_({
+			super.soundSource.set(\decay, soshatsDecayKnob.value);
+		});
+
+		/*-----------END INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
+
+	}
+
+	/*UPDATES THE SEQUENCE WHEN AN EUCLIDEAN PARAMETER IS UPDATED*/
+		updateSequence{ | sequence |
+		var seq = Pseq(sequence, inf);
+		Pdef(super.pdefId,
+			Pbind(
+				\instrument, \SOShats,
+				\noteOrRest, Pif(seq > 0, 1, Rest())
+			)
+		);
+		}
+
+	removePdef{
+		Pdef(super.pdefId).remove;
+	}
+}
+
+Kick808Inst : Inst {
+
+	var instView, kick808DecayKnob, kick808ToneKnob;
+
+	/*CREATES THE INTRUMENT SPECIFIC GUI COMPONENTS, AFTER CREEATING THE COMPOSITE VIEW FOR THIS INSTRUMENT*/
+	createView{ | templateView |
+
+		instView = CompositeView.new(templateView, Rect(0, 0, templateView.bounds.width, templateView.bounds.height) );
+		instView.background = Color.grey;
+
+		super.initializeSequencerGui(instView);
+
+		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
+
+		super.instLabel.string = "kick808";
+
+		super.soundSource = Pdef(super.pdefId,
+			Pbind(
+				\instrument, \kick_808,
+				//\level, Pseq([0,0,0,0], inf)
+				\noteOrRest, Pif((Pseq(Array.fill(1024, {0}), inf))> 0, 1, Rest)
+			)
+		);
+		super.soundSource.quant_([1024,0,0,1]);
+		super.soundSource.play;
+
+		/*---------------------SOUND PARAMETERS-----------------------------*/
+		//DECAY
+		kick808DecayKnob = super.paramSet.addParameter(name:"decay", minVal:0.7, maxVal:1.4, initVal:1);
+		kick808DecayKnob.action_({
+			super.soundSource.set(\decay, kick808DecayKnob.value);
+		});
+		//TONE
+		kick808ToneKnob = super.paramSet.addParameter(name:"tone", minVal:0.5, maxVal:1.5, initVal:1);
+		kick808ToneKnob.action_({
+			super.soundSource.set(\splendore, kick808ToneKnob.value);
+		});
+
+		/*-----------END INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
+
+	}
+
+	/*UPDATES THE SEQUENCE WHEN AN EUCLIDEAN PARAMETER IS UPDATED*/
+		updateSequence{| sequence |
+		var seq = Pseq(sequence, inf);
+		Pdef(super.pdefId,
+			Pbind(
+				\instrument, \kick_808,
 				\noteOrRest, Pif(seq > 0, 1, Rest())
 			)
 		);
@@ -721,4 +837,5 @@ SoundParameters {
 
 		^knob;
 	}
+
 }
