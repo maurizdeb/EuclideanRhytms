@@ -12,6 +12,28 @@
 \usepackage[noend]{algpseudocode}
 \usepackage{blindtext}
 \usepackage{enumitem}
+\usepackage[framed,numbered]{sclang-prettifier}
+\usepackage[T1]{fontenc}
+
+\lstset{numbers=left,numberblanklines=false,escapeinside=@@, keywordstyle = [2]{\scenvvarstyle}, otherkeywords={arg,this}, morekeywords=[2]{arg,this}}
+\let\origthelstnumber\thelstnumber
+\makeatletter
+\newcommand*\Suppressnumber{
+  \lst@AddToHook{OnNewLine}{
+    \let\thelstnumber\relax
+     \advance\c@lstnumber-\@ne\relax
+    }
+}
+
+\newcommand*\Reactivatenumber[1]{%
+  \setcounter{lstnumber}{\numexpr#1-1\relax}
+  \lst@AddToHook{OnNewLine}{%
+   \let\thelstnumber\origthelstnumber%
+   \refstepcounter{lstnumber}
+  }%
+}
+
+\makeatother
 
 \begin{document}
 
