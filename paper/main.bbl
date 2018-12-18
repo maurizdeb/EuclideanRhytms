@@ -1,0 +1,60 @@
+\begin{thebibliography}{10}
+
+\bibitem{Toussaint:2004:euclidean:rhythm}
+Godfried Toussaint,
+\newblock ``The euclidean algorithm generates traditional musical rhythms,''
+\newblock Tech. {R}ep., School of Computer Science, McGill University,
+  Montreal, Quebec, Canada, 2004.
+
+\bibitem{MutableInstruments:Yarns}
+O.~Gillet,
+\newblock ``Mutable instruments. yarns, eurorack for generetion of euclidean
+  rythms,''
+\newblock Available at
+  \href{https://mutable-instruments.net/modules/yarns/manual/}{https://mutable-instruments.net/modules/yarns/manual/}.
+
+\bibitem{vpme.de}
+Vladimir Pantelic,
+\newblock ``Euclidean circles eurorack,''
+\newblock Available at
+  \href{https://vpme.de/euclidean-circles/}{https://vpme.de/euclidean-circles/}.
+
+\bibitem{2hp:Euclid}
+``Modulus for generetion of euclidean rythms,''
+\newblock Available at
+  \href{http://www.twohp.com/modules/euclid}{http://www.twohp.com/modules/euclid}.
+
+\bibitem{Allouche:2002:AutomSeq:book}
+J.-P. Allouche and J.~O. Shallit, Eds.,
+\newblock {\em Automatic Sequences},
+\newblock Cambridge University Press, 2002.
+
+\bibitem{Euclid:Elements}
+Euclid,
+\newblock {\em Elements}.
+
+\bibitem{Bjorklund:2003:euclidean:rhythm}
+E.~Bjorklund,
+\newblock ``The theory of rep-rate pattern generation in the sns timing
+  system,''
+\newblock Tech. {R}ep., Los Alamos National Laboratory, Los Alamos, U.S.A,
+  2003.
+
+\bibitem{Klower:1997}
+Tom Klower,
+\newblock {\em The Joy of Drumming: Drums and Percussion Instruments from
+  Around the World},
+\newblock Binkey Kok Publications, Diever, Holland, 1997.
+
+\bibitem{Keith:1991}
+Michael Keith,
+\newblock {\em From Polychords to Pólya: Adventures in Musical Combinatorics},
+\newblock Vinculum Press, Princeton, 1991.
+
+\bibitem{Behague:1973}
+Gerard Behague,
+\newblock ``Bossa and bossas: recent changes in brazilian urban popular
+  music,''
+\newblock {\em Ethnomusicology}, vol. 17, no. 2, pp. 209--233, 1973.
+
+\end{thebibliography}
