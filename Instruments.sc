@@ -44,7 +44,7 @@ InstFactory {
 
 		{ name == "snare" } { instance = SnareInst.new }
 
-		{ name == "snare909" } { instance = Snare909Inst.new }
+		{ name == "SOSsnare" } { instance = SOSsnareInst.new }
 
 		{ name == "hi-hat" } { instance = HiHatInst.new }
 
@@ -64,7 +64,7 @@ InstFactory {
 	}
 
 	*getInstruments {
-		^["SELECT INSTRUMENT","kick", "kick808", "snare", "snare909", "hi-hat", "sampler", "cowbell", "kalimba", "marimba", "SOShats"];
+		^["SELECT INSTRUMENT","kick", "kick808", "snare", "SOSsnare", "hi-hat", "sampler", "cowbell", "kalimba", "marimba", "SOShats"];
 	}
 
 	//PRIVATE METHOD SHOULD NOT BE CALLED FROM OUTSIDE
@@ -148,7 +148,7 @@ Inst {
 		/*--------LEVEL CONTROL-----*/
 
 		g = ControlSpec.new(0, 1.5, \lin, 0.1);
-		levelKnob = EZKnob(instView,Rect(instView_width*4/9, instView_width*7/8, dim_knob_euclidean, dim_knob_euclidean),"level",g,initVal:1);
+		levelKnob = EZKnob(instView,Rect(instView_width*4/9, instView_width*7/8, dim_knob_euclidean, dim_knob_euclidean),"level",g,initVal:0.5);
 
 		levelKnob.action_({
 			soundSource.set(\amp, levelKnob.value);
@@ -234,6 +234,7 @@ KickInst : Inst {
 			)
 		);
 		super.soundSource.quant_([1024,0,0,1]);
+		super.soundSource.set(\amp, 0.5);
 		super.soundSource.play;
 
 		/*---------------------SOUND PARAMETERS-----------------------------*/
@@ -293,6 +294,7 @@ SnareInst : Inst {
 			)
 		);
 		super.soundSource.quant_([1024,0,0,1]);
+		super.soundSource.set(\amp, 0.5);
 		super.soundSource.play;
 
 		/*---------------------SOUND PARAMETERS-----------------------------*/
@@ -326,7 +328,7 @@ SnareInst : Inst {
 	}
 }
 
-Snare909Inst : Inst {
+SOSsnareInst : Inst {
 
 	var instView, snare909DecayKnob, snare909ToneKnob;
 
@@ -340,28 +342,29 @@ Snare909Inst : Inst {
 
 		/*---------------INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
 
-		super.instLabel.string = "snare 909";
+		super.instLabel.string = "SOS snare";
 
 		super.soundSource = Pdef(super.pdefId,
 			Pbind(
-				\instrument, \snare909,
+				\instrument, \SOSsnare,
 				//\level, Pseq([0,0,0,0], inf)
 				\noteOrRest, Pif((Pseq(Array.fill(1024, {0}), inf))> 0, 1, Rest)
 			)
 		);
 		super.soundSource.quant_([1024,0,0,1]);
+		super.soundSource.set(\amp, 0.5);
 		super.soundSource.play;
 
 		/*---------------------SOUND PARAMETERS-----------------------------*/
 		//DECAY
-		snare909DecayKnob = super.paramSet.addParameter(name:"decay", minVal:0.7, maxVal:1.4, initVal:1);
+		snare909DecayKnob = super.paramSet.addParameter(name:"decay", minVal:0.3, maxVal:4, initVal:1);
 		snare909DecayKnob.action_({
 			super.soundSource.set(\decay, snare909DecayKnob.value);
 		});
 		//TONE
-		snare909ToneKnob = super.paramSet.addParameter(name:"brightness", minVal:0.5, maxVal:1.5, initVal:1);
+		snare909ToneKnob = super.paramSet.addParameter(name:"tone", minVal:0.1, maxVal:4, initVal:1);
 		snare909ToneKnob.action_({
-			super.soundSource.set(\splendore, snare909ToneKnob.value);
+			super.soundSource.set(\tone, snare909ToneKnob.value);
 		});
 
 		/*-----------END INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
@@ -373,7 +376,7 @@ Snare909Inst : Inst {
 		var seq = Pseq(sequence, inf);
 		Pdef(super.pdefId,
 			Pbind(
-				\instrument, \snare909,
+				\instrument, \SOSsnare,
 				\noteOrRest, Pif(seq > 0, 1, Rest())
 			)
 		);
@@ -408,18 +411,19 @@ HiHatInst : Inst {
 			)
 		);
 		super.soundSource.quant_([1024,0,0,1]);
+		super.soundSource.set(\amp, 0.5);
 		super.soundSource.play;
 
 		/*---------------------SOUND PARAMETERS-----------------------------*/
 		//DECAY
 		hi_hatDecayKnob = super.paramSet.addParameter(name:"decay", minVal:0.05, maxVal:1, initVal:0.1);
 		hi_hatDecayKnob.action_({
-			super.soundSource.set(\opening,hi_hatDecayKnob.value);
+			super.soundSource.set(\decay,hi_hatDecayKnob.value);
 		});
 		//TONE
 		hi_hatToneKnob = super.paramSet.addParameter(name:"tone", minVal:0.83, maxVal:1.6, initVal:1);
 		hi_hatToneKnob.action_({
-			super.soundSource.set(\freq,hi_hatToneKnob.value);
+			super.soundSource.set(\tone,hi_hatToneKnob.value);
 		});
 
 		/*-----------END INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/
@@ -461,7 +465,7 @@ SamplerInst : Inst {
 		super.instLabel.string = "sampler";
 
 		/* ---- btnLoad -----*/
-		samplerLoadBtn = Button(instView, Rect(instView.bounds.left + (instView.bounds.width/5), instView.bounds.top + 150, templateView.bounds.width/5, templateView.bounds.width/20));
+		samplerLoadBtn = Button(instView, Rect(instView.bounds.left + (instView.bounds.width/2), instView.bounds.top + 150, templateView.bounds.width/5, templateView.bounds.width/20));
 		samplerLoadBtn.string = "load sample";
 
 		samplerLoadBtn.action_({ arg butt;
@@ -497,8 +501,7 @@ SamplerInst : Inst {
 		});
 
 		/* ---- sample rate knob -----*/
-		g = ControlSpec.new(0, 3, \lin);
-		sample_rate_knob = EZKnob(instView, Rect(instView.bounds.left + (instView.bounds.width*3/5), instView.bounds.top + 150, dim_knob_sound, dim_knob_sound),"rate", g,initVal:0.5);
+		sample_rate_knob = super.paramSet.addParameter(name:"rate", minVal:0, maxVal:3, initVal:0.5);
 
 		sample_rate_knob.action_({
 			synth.set(\rate, sample_rate_knob.value);
@@ -524,8 +527,7 @@ SamplerInst : Inst {
 		}
 
 	removePdef{
-		synth.free;
-		Pdef(super.pdefId).remove;
+		super.soundSource.remove;
 	}
 
 	muteStrategy{ | muteBtn |
@@ -557,6 +559,7 @@ CowbellInst : Inst {
 			)
 		);
 		super.soundSource.quant_([1024,0,0,1]);
+		super.soundSource.set(\amp, 0.5);
 		super.soundSource.play;
 
 		/*---------------------SOUND PARAMETERS-----------------------------*/
@@ -608,6 +611,7 @@ KalimbaInst : Inst {
 			)
 		);
 		super.soundSource.quant_([1024,0,0,1]);
+		super.soundSource.set(\amp, 0.5);
 		super.soundSource.play;
 
 		/*---------------------SOUND PARAMETERS-----------------------------*/
@@ -664,6 +668,7 @@ MarimbaInst : Inst {
 			)
 		);
 		super.soundSource.quant_([1024,0,0,1]);
+		super.soundSource.set(\amp, 0.5);
 		super.soundSource.play;
 
 		/*---------------------SOUND PARAMETERS-----------------------------*/
@@ -720,6 +725,7 @@ SOShatsInst : Inst {
 			)
 		);
 		super.soundSource.quant_([1024,0,0,1]);
+		super.soundSource.set(\amp, 0.5);
 		super.soundSource.play;
 
 		/*---------------------SOUND PARAMETERS-----------------------------*/
@@ -777,6 +783,7 @@ Kick808Inst : Inst {
 			)
 		);
 		super.soundSource.quant_([1024,0,0,1]);
+		super.soundSource.set(\amp, 0.5);
 		super.soundSource.play;
 
 		/*---------------------SOUND PARAMETERS-----------------------------*/
@@ -788,7 +795,7 @@ Kick808Inst : Inst {
 		//TONE
 		kick808ToneKnob = super.paramSet.addParameter(name:"tone", minVal:0.5, maxVal:1.5, initVal:1);
 		kick808ToneKnob.action_({
-			super.soundSource.set(\splendore, kick808ToneKnob.value);
+			super.soundSource.set(\tone, kick808ToneKnob.value);
 		});
 
 		/*-----------END INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/

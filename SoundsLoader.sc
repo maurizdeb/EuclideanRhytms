@@ -2,6 +2,15 @@ SoundsLoader {
 
 	*load{
 
+		SynthDef(\reverb, { arg outBus = 0, inBus=0, pan = 0, mix=0, room=0.5;
+			var input,out;
+
+			input = In.ar(inBus, 2);
+
+			out = FreeVerb.ar(input,mix:mix,room:room);
+			Out.ar(outBus, Pan2.ar(out, pan));
+		}).add;
+
 		SynthDef(\kick, { arg out = 0, pan = 0, amp = 0.5, punch = 0.5, decay = 0.3, mute=1;
 			var body, bodyFreq, bodyAmp,
 			pop, popFreq, popAmp,
@@ -40,27 +49,43 @@ SoundsLoader {
 			Out.ar(0, Pan2.ar( snare, pan, amp*mute ) );
 		}).add;
 
-		//SNARE909
-		SynthDef(\snare909,{ |out=0, amp=1, mute=1, velocity=1, decay=1, splendore=1|
-			var excitation, membrane;
+		//SOSsnare
+		SynthDef(\SOSsnare,
+			{arg out = 0, sustain = 0.1, drum_mode_level = 0.25,
+				snare_level = 40, snare_tightness = 1000,
+				freq = 405, amp = 0.5, mute = 1, tone = 1, decay = 1;
+				var drum_mode_sin_1, drum_mode_sin_2, drum_mode_pmosc, drum_mode_mix, drum_mode_env;
+				var snare_noise, snare_brf_1, snare_brf_2, snare_brf_3, snare_brf_4, snare_reson;
+				var snare_env;
+				var snare_drum_mix;
 
-			excitation = LPF.ar(WhiteNoise.ar(1), 7040*splendore, 1) * (0.1 + velocity);
-			membrane = (
-				/* Two simple enveloped oscillators represent the loudest resonances of the drum membranes */
-				(LFTri.ar(330, 0, 1) * EnvGen.ar(Env.perc(0.0005,0.055*decay),doneAction:0) * 0.25)
-				+(LFTri.ar(185, 0, 1) * EnvGen.ar(Env.perc(0.0005,0.075*decay),doneAction:0) * 0.25)
+				drum_mode_env = EnvGen.ar(Env.perc(0.005, sustain*decay), 1.0, doneAction: 2);
+				drum_mode_sin_1 = SinOsc.ar(freq*0.53*tone, 0, drum_mode_env * 0.5);
+				drum_mode_sin_2 = SinOsc.ar(freq*tone, 0, drum_mode_env * 0.5);
+				drum_mode_pmosc = PMOsc.ar(	Saw.ar(freq*0.85*tone),
+					184,
+					0.5/1.3,
+					mul: drum_mode_env*5,
+					add: 0);
+				drum_mode_mix = Mix.new([drum_mode_sin_1, drum_mode_sin_2, drum_mode_pmosc]) * drum_mode_level;
 
-				/* Filtered white noise represents the snare */
-				+(excitation * EnvGen.ar(Env.perc(0.0005,0.4*decay),doneAction:2) * 0.2)
-				+(HPF.ar(excitation, 523*splendore, 1) * EnvGen.ar(Env.perc(0.0005,0.283*decay),doneAction:0) * 0.2)
-
-			) * amp;
-			Out.ar(out, membrane!2, amp*mute);
-		}).add;
+				// choose either noise source below
+				//	snare_noise = Crackle.ar(2.01, 1);
+				snare_noise = LFNoise0.ar(20000, 0.1);
+				snare_env = EnvGen.ar(Env.perc(0.005, sustain*decay), 1.0, doneAction: 2);
+				snare_brf_1 = BRF.ar(in: snare_noise, freq: 8000, mul: 0.5, rq: 0.1);
+				snare_brf_2 = BRF.ar(in: snare_brf_1, freq: 5000, mul: 0.5, rq: 0.1);
+				snare_brf_3 = BRF.ar(in: snare_brf_2, freq: 3600, mul: 0.5, rq: 0.1);
+				snare_brf_4 = BRF.ar(in: snare_brf_3, freq: 2000, mul: snare_env, rq: 0.0001);
+				snare_reson = Resonz.ar(snare_brf_4, snare_tightness, mul: snare_level) ;
+				snare_drum_mix = Mix.new([drum_mode_mix, snare_reson]) * 5 * amp;
+				Out.ar(out, Pan2.ar(snare_drum_mix, 0, amp*mute))
+			}
+		).add;
 
 
 		//HI-HAT
-		SynthDef("hihat", {arg out = 0, amp = 0.5, att = 0.01, rel = 0.2, ffreq = 6000, pan = 0, decay = 1, tone = 1, mute = 1;
+		SynthDef(\hihat, {arg out = 0, amp = 0.5, att = 0.01, rel = 0.2, ffreq = 6000, pan = 0, decay = 1, tone = 1, mute = 1;
 			var env, snd;
 			env = Env.perc(att, rel*decay, amp).kr(doneAction: 2);
 			snd = WhiteNoise.ar;
@@ -98,7 +123,7 @@ SoundsLoader {
 		}).add;
 
 		//KALIMBA
-		SynthDef(\kalimba, { arg mute = 1, amp = 0.1, freq = 440, freqMod = 1, mix = 0.1, relMin = 2.5, relMax = 3.5;
+		SynthDef(\kalimba, { arg mute = 1, amp = 0.5, freq = 440, freqMod = 1, mix = 0.1, relMin = 2.5, relMax = 3.5;
 
 			//Kalimba based on bank of resonators
 			var snd;
@@ -116,7 +141,7 @@ SoundsLoader {
 		}).add;
 
 		//MARIMBA
-		SynthDef(\marimba, {arg mute = 1, amp = 0.4, freq = 440, releaseMod = 1, freqMod = 1;
+		SynthDef(\marimba, {arg mute = 1, amp = 0.5, freq = 440, releaseMod = 1, freqMod = 1;
 			var snd, env;
 			env = Env.linen(0.015, 1, 0.5*releaseMod, amp).kr(doneAction: 2);
 			snd = BPF.ar(Saw.ar(0), freq*freqMod, 0.02);
@@ -127,7 +152,7 @@ SoundsLoader {
 
 		//SOShats
 		SynthDef(\SOShats,
-			{arg out = 0, freq = 6000, sustain = 0.1, amp = 0.8, decay = 1, tone = 1, mute = 1;
+			{arg out = 0, freq = 6000, sustain = 0.1, amp = 0.5, decay = 1, tone = 1, mute = 1;
 				var root_cymbal, root_cymbal_square, root_cymbal_pmosc;
 				var initial_bpf_contour, initial_bpf, initial_env;
 				var body_hpf, body_env;
@@ -149,7 +174,8 @@ SoundsLoader {
 				Out.ar(out, Pan2.ar(cymbal_mix, 0, amp*mute));
 		}).add;
 
-		SynthDef("kick_808", {arg out = 0, freq1 = 240, freq2 = 60, amp = 1, ringTime = 10, rel = 1, dist = 0.5, pan = 0, tone = 1, decay = 1, mute = 1;
+		//KICK-808
+		SynthDef(\kick_808, {arg out = 0, freq1 = 240, freq2 = 60, amp = 0.5, ringTime = 10, rel = 1, dist = 0.5, pan = 0, tone = 1, decay = 1, mute = 1;
 			var snd, env;
 			snd = Ringz.ar(
 				in: Impulse.ar(0), // single impulse
@@ -160,6 +186,5 @@ SoundsLoader {
 			snd = snd * env;
 			Out.ar(0, Pan2.ar(snd, pan, amp*mute));
 		}).add;
-
 	}
 }
