@@ -95,7 +95,7 @@ SoundsLoader {
 
 
 		//SAMPLER
-		SynthDef(\sampler, { arg buf, rate=1, amp=0.1, t_gate=0, pan=0.0, mute=1;
+		SynthDef(\sampler, { arg buf, rate=1, amp=0.5, t_gate=0, pan=0.0, mute=1;
 
 			var sample;
 

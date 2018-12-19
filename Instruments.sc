@@ -80,7 +80,7 @@ Inst {
 
 	var sequence16, <>sequence, <>sequenceStraight, <>soundSource, <>paramSet, <>pdefId, level,
 	    <>instLabel, muteBtn, <>closeBtn,
-	    seqHitsKnob, seqLengthKnob, seqOffsetKnob, humanizerKnob, levelKnob, g;
+	    seqHitsKnob, seqLengthKnob, seqOffsetKnob, humanizerKnob, <>levelKnob, g;
 
 	/*initializeSequencerGui INITIATES THE GUI RELATIVE TO A GENERIC INSTRUMENT*/
 	initializeSequencerGui { | instView |
@@ -505,6 +505,10 @@ SamplerInst : Inst {
 
 		sample_rate_knob.action_({
 			synth.set(\rate, sample_rate_knob.value);
+		});
+
+		super.levelKnob.action_({
+			synth.set(\amp, super.levelKnob.value);
 		});
 
 		/*-----------END INSTRUMENT-SPECIFIC GUI ELEMENTS--------------------*/

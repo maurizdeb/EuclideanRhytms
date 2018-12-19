@@ -105,7 +105,6 @@
 
 })
 )
-
-
+s.plotTree;
 Platform.userExtensionDir;
 
