@@ -57,4 +57,9 @@ Gerard Behague,
   music,''
 \newblock {\em Ethnomusicology}, vol. 17, no. 2, pp. 209--233, 1973.
 
+\bibitem{DesignPattern:Gamma}
+Ralph Johnson John Vlissides Grady~Booch Erich~Gamma, Richard~Helm,
+\newblock {\em Design Patterns: Elements of Reusable Object-Oriented Software},
+\newblock Addison-Wesley Press, Boston, Massachusetts, U.S.A., 1994.
+
 \end{thebibliography}

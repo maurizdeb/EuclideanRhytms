@@ -14,9 +14,20 @@
 \usepackage{enumitem}
 \usepackage[framed,numbered]{sclang-prettifier}
 \usepackage[T1]{fontenc}
+\usepackage{xcolor}
+\usepackage{etoolbox}
+
+\newcommand{\algorithmautorefname}{Algorithm}
 
 \renewcommand{\lstlistingname}{Code}% Listing -> Algorithm
 \renewcommand{\lstlistlistingname}{List of \lstlistingname s}
+
+\newtoggle{InString}{}% Keep track of if we are within a string
+\togglefalse{InString}% Assume not initally in string
+
+\newcommand*{\ColorIfNotInString}[1]{\iftoggle{InString}{#1}{\color{violet}#1}}%
+\newcommand*{\ProcessQuote}[1]{#1\iftoggle{InString}{\global\togglefalse{InString}}{\global\toggletrue{InString}}}%
+
 \lstset{numbers=left,numberblanklines=false,escapeinside=@@, keywordstyle = [2]{\scenvvarstyle}, otherkeywords={arg,this}, morekeywords=[2]{arg,this}}
 \let\origthelstnumber\thelstnumber
 \makeatletter
@@ -67,9 +78,10 @@
 \section{The algorithm}
 \subfile{algorithm}
 \section{The application}
+In the next tre chapter will be explained the structure of the application, with reference to Object Oriented Programming. The first section exposes the passage from the creation of sequence to reproduction of itself, the second one defines its humanization and the third concludes with an overview on the Graphical User Interface.
 \subsection{Sequencing}
 \subfile{sequencing}
-\subsection{Synthdefs}
+\subsection{Humanizer}
 \subfile{synthdefs}
 \subsection{Graphical User Interface}
 \subfile{devel}

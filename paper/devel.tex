@@ -74,12 +74,12 @@ TemplateInstGUI{
 To ensure complete scalability of the GUI, in the main.scd script, the sizes of the screen are retrieved through a system call, and those quantities are used to scale every other portion of the GUI. Going up in the hierarchy of components and subcomponents we reach the main window that contains the whole application, which is proportional to the screen size. This implementation allows to have a user interface that scales with the screen dimensions.\\
 [2mm]
 In order to have a dynamic GUI, that allows the user to create, erase and replace instances of the various instruments, it was necessary to define a slot, which could host any different kind of instrument. Consequently, a way to abstract on the way each specific instrument is created, was needed.\\ 
-The proposed solution makes use of the factory method patter, which is a common design pattern in object oriented programming. This enables writing of subclasses to change the way an object is created (to redefine which class to instantiate). 
+The proposed solution makes use of the factory method patter, which is a common design pattern in object oriented programming. This enables writing of subclasses to change the way an object is created (to redefine which class to instantiate)\cite{DesignPattern:Gamma}. 
 To implement it, it is necessary to make an abstraction on the way instrument objects that are created (Inst class) and provide a class that is responsible for the creation of such objects (Inst Factory).
 The class diagram below depicts the simplified architecture for instruments creation and behaviour. The Supercollider classes are omitted for the sake of clarity.
 \begin{figure}[htbp]
 \centering
-\includegraphics[height=5.5cm, width=12cm, keepaspectratio]{images/factory_pattern_uml.png}
+\includegraphics[height=5.4cm, width=12cm, keepaspectratio]{images/factory_pattern_uml.png}
 \caption{Class diagram of the application}
 \label{fig:uml}
 \end{figure}
@@ -114,7 +114,7 @@ TemplateInstGUI{@\Suppressnumber@
 \begin{lstlisting}[
   style      = SuperCollider-IDE,
   basicstyle = \scttfamily\small,
-  caption    = {Controller of TemplateInstGui},
+  caption    = {Factory of Instruments},
   label = {lst:InstFactoryClass},
   firstnumber = 33
 ]
@@ -128,9 +128,11 @@ InstFactory {
 
 		{ name == "kick" }   { instance = KickInst.new}
 
+		{ name == "kick808" } { instance = Kick808Inst.new }
+
 		{ name == "snare" } { instance = SnareInst.new }
 
-		{ name == "snare909" } { instance = Snare909Inst.new }
+		{ name == "SOSsnare" } { instance = SOSsnareInst.new }
 
 		{ name == "hi-hat" } { instance = HiHatInst.new }
 
@@ -140,7 +142,9 @@ InstFactory {
 
 		{ name == "kalimba" }   { instance = KalimbaInst.new }
 
-		{ name == "marimba" }   { instance = MarimbaInst.new };
+		{ name == "marimba" }   { instance = MarimbaInst.new }
+
+		{ name == "SOShats"} { instance = SOShatsInst.new};
 
 		instance.pdefId = this.prGenIstrumetId;
 		^instance;

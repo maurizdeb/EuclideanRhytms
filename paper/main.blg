@@ -9,45 +9,50 @@ Warning--empty publisher in Euclid:Elements
 Warning--empty year in Euclid:Elements
 Warning--empty publisher in Klower:1997
 Warning--empty publisher in Keith:1991
-You've used 10 entries,
+Too many commas in name 1 of "Erich Gamma, Richard Helm, Ralph Johnson, John Vlissides, Grady Booch" for entry DesignPattern:Gamma
+while executing---line 1012 of file IEEEbib.bst
+Too many commas in name 1 of "Erich Gamma, Richard Helm, Ralph Johnson, John Vlissides, Grady Booch" for entry DesignPattern:Gamma
+while executing---line 1012 of file IEEEbib.bst
+Warning--empty publisher in DesignPattern:Gamma
+You've used 11 entries,
             1838 wiz_defined-function locations,
-            510 strings with 5055 characters,
-and the built_in function-call counts, 1369 in all, are:
-= -- 118
-> -- 42
+            516 strings with 5279 characters,
+and the built_in function-call counts, 1520 in all, are:
+= -- 130
+> -- 46
 < -- 0
-+ -- 20
-- -- 10
-* -- 79
-:= -- 241
-add.period$ -- 10
-call.type$ -- 10
++ -- 22
+- -- 11
+* -- 87
+:= -- 264
+add.period$ -- 11
+call.type$ -- 11
 change.case$ -- 8
 chr.to.int$ -- 0
-cite$ -- 16
-duplicate$ -- 73
-empty$ -- 148
-format.name$ -- 10
-if$ -- 295
+cite$ -- 18
+duplicate$ -- 83
+empty$ -- 167
+format.name$ -- 11
+if$ -- 330
 int.to.chr$ -- 0
-int.to.str$ -- 10
-missing$ -- 8
-newline$ -- 51
-num.names$ -- 10
-pop$ -- 38
+int.to.str$ -- 11
+missing$ -- 10
+newline$ -- 56
+num.names$ -- 11
+pop$ -- 45
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 0
-skip$ -- 15
+skip$ -- 17
 stack$ -- 0
 substring$ -- 25
-swap$ -- 5
+swap$ -- 6
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
 type$ -- 0
-warning$ -- 6
-while$ -- 11
-width$ -- 12
-write$ -- 97
-(There were 6 warnings)
+warning$ -- 7
+while$ -- 12
+width$ -- 13
+write$ -- 107
+(There were 2 error messages)

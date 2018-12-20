@@ -7,7 +7,7 @@ In order to compute the greatest common divisor between two integers, the greek 
 The same procedure can be done more efficiently with divisions.\\
 [2mm]
 \begin{algorithm}
-\label{euclid}
+\caption{Euclid's Algorithm}\label{euclid}
 \begin{algorithmic}[1]
 \Procedure{euclid}{$m,k$}
 \If {$k == 0$}
@@ -38,9 +38,9 @@ As Touissant explains in his work\cite{Toussaint:2004:euclidean:rhythm}, with th
 \caption{The Euclidean rhythm $E(5,8)$ of the Cuban cinquillo}
 \label{fig:1}
 \end{figure}
-The application uses as reference the algorithm explained by Bjorklund\cite{Bjorklund:2003:euclidean:rhythm}. It is composed by two steps: the first consists in creating the base string and the second in spacing the onsets inside the base string.\\
+The application uses as reference the algorithm explained by Bjorklund\cite{Bjorklund:2003:euclidean:rhythm}. This algorithm adopts the Euclidean's one(\autoref{euclid}), to calculate at each step a remainder, needed to equally divide onsets inside the sequence of 0's and 1's. It is composed by two steps: the first consists in creating the base string and the second in spacing the onsets inside the base string.\\
 Considering \begin{math}m\end{math} the length of sequence and \begin{math}n\end{math} the number of onsets, and supposing that \begin{math}n<\frac{m}{2}\end{math}, we need to create a sequence of \begin{math}m-n\end{math} zeros and one another of \begin{math}n\end{math} ones. In the case of five pulses of thirteen cycles, we start from seqeuences \begin{math}[00000000]\end{math} and \begin{math}[11111]\end{math}.\\
-We start by simply dividing the five 1’s into the eight 0’s. This will put a 1 after every 0, with three 0’s left over: \begin{math}[0101010101]\end{math} and \begin{math}[000]\end{math}.\\
+We start by simply dividing the five 1’s into the eight 0’s. This will put a 1 after every 0, with three 0’s left over. It is visible that the three 0's correspond to the number \begin{math}3\end{math}, the rest of division between \begin{math}8\end{math} and \begin{math}5\end{math}: \begin{math}[0101010101]\end{math} and \begin{math}[000]\end{math}.\\
 Once again, we can think of this as two optimally distributed strings. One strings is ten bits long and contains five “01” pairs (an optimal distribution of five pulses over ten slots). The second string contains three 0’s. If we now distribute the three 0’s over the five “01” pairs, we get three “010” triples with two “01” pairs left over: \begin{math}[010][010][010] [01][01]\end{math}.\\
 We still have two optimally distributed strings. “010010010” is an optimal distribution of three pulses over nine slots and “0101” is an optimal distribution of two pulses over four slots. We now repeat the process, dividing the two “01” strings into the three “010” strings. This gives us two five-bit strings (“01001”) with one three-bit string (“010”) as a remainder: \begin{math}[01001][01001] [010][01]\end{math}.\\
 We can stop the process when the remainder reaches one or zero. Our final pattern, therefore, is \begin{math}[0100101001010]\end{math} , which is as evenly as we can distribute five pulses over thirteen slots.
