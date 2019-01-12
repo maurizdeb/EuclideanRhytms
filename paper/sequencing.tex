@@ -1,5 +1,96 @@
 \documentclass[main.tex]{subfiles}
 
 \begin{document}
+The first aim of the application is to play the sequences of onsets and downsets meanwhile the user is changing the values of the Supercollider application.\\
+This is possible reproducing these three steps:
+\begin{itemize}[noitemsep]
+\item Read new values related to length and onset of sequence
+\item Calculate new sequence
+\item Reproduce the calculated sequence for the sound selected by user
+\end{itemize}
+In order to following the principles of object oriented programming, it has been developed a class that contains the Euclidean Algorithm, necessary to the calculation of sequence. It is an adapted version of the algorithm discussed in the previous section and in \cite{Bjorklund:2003:euclidean:rhythm}. The class contain the methods related to the building of string based on the remainder of division between length and steps. The first method calculates the array of remainders and counts related to each \textit{level}. Considering that the number of downset (or 0's) is greater than the number of onsets (or 1's) it can be seen that the level \begin{math}-1\end{math} implies that a 0 should be inserted in
+the string. Level \begin{math}-2\end{math} implies that a 1 should be inserted in the string. The “count”
+array tells us how many level \begin{math}l-1\end{math} strings make up a level \begin{math}l\end{math} string. The “remainder” array is used to tell us if the level \begin{math}l\end{math} string contains a level \begin{math}l-2\end{math} string. We use the remainder array both to keep track of the remainder of the previous division (it will become the denominator of the next
+division), and to determine how many levels deep we need to go. The process stops
+either when the remainder is zero (we have achieved a completely even distribution) or
+when the remainder is one (we have reached the end of the remainder series).\\
+The same process can be applied also for sequences for which the number of 0's is less than number of 1's, only by considering the problem of equally spaced downsets inside onsets.
+
+\begin{lstlisting}[
+  style      = SuperCollider-IDE,
+  basicstyle = \scttfamily\small,
+  caption    = {Controller of TemplateInstGui},
+  label = {lst:buildString},
+  firstnumber=62
+]
+	*build_string { | sequence, level, count, remainder, flag |
+
+		if(level == -1 , {
+			sequence = sequence ++ [flag] //add 0 if k <= n/2;
+		}, {
+			if(level == -2 , {
+				sequence = sequence ++ [1-flag];
+			}, {
+				for(0, count[level]-1, {
+					sequence = this.build_string(sequence, level-1, count, remainder, flag);
+				});
+				if(remainder[level] != 0, {
+					sequence = this.build_string(sequence, level-2, count, remainder, flag);
+				});
+			});
+		});
+
+		^sequence;
+	}
+}
+\end{lstlisting}
+
+After the computation of the sequence, the application needs a way to continuosly reproduce the sequence, without stopping it if some parameters are changing, but instead uploading itself in real time. In order to this process to be perfeclty computed Supercollider provides an Event Stream 'manager' called \textit{Pdef}. The \textit{Pdef} incapsulates a certain type of \textit{Pbind}, giving it a reference to a global value, defined as 'key', and reproduces it following the global clock definition. By changing some parameters of the \textit{Pdef} or the entire \textit{Pbind}(\autoref{lst:PdefReprod}), this last uploads itself and proceeds with playing. The \textit{Pbind} links the \textit{SynthDef} that the user wants to play to 'tageted' strings that define the pattern. For instance it is possible to use the \textit{Pbind} to play a sequence of notes of a \textit{SynthDef} by defining an array of degrees, or midi notes, defining their duration or their amplitude and other features by simply using 'targeted' strings. From Supercollider library: 
+\begin{lstlisting}[
+  style      = SuperCollider-IDE,
+  basicstyle = \scttfamily\small,
+  caption    = {Controller of TemplateInstGui},
+  label = {lst:PdefReprod},
+  numbers=none
+](
+// a SynthDef
+SynthDef(\test, { | out, freq = 440, amp = 0.1, nharms = 10, pan = 0, gate = 1 |
+    var audio = Blip.ar(freq, nharms, amp);
+    var env = Linen.kr(gate, doneAction: Done.freeSelf);
+    OffsetOut.ar(out, Pan2.ar(audio, pan, env) );
+}).add;
+)
+
+Pbind(\instrument, \test, \freq, Prand([1, 1.2, 2, 2.5, 3, 4], inf) * 200, \dur, 0.1).play;
+\end{lstlisting}
+In our case the \textit{Pbind} contains the sequence that is playing and the \textit{Pdef} globalizes it. 
+
+\begin{lstlisting}[
+  style      = SuperCollider-IDE,
+  basicstyle = \scttfamily\small,
+  caption    = {Controller of TemplateInstGui},
+  label = {lst:PdefReprod},
+  numbers=none
+]
+		super.soundSource = Pdef(super.pdefId,
+			Pbind(
+				\instrument, \kick,
+				\noteOrRest, Pif((Pseq(Array.fill(1024, {0}), inf))> 0, 1, Rest)
+			)
+		);
+
+		//...
+
+		updateSequence{ | sequence |
+		var seq = Pseq(sequence, inf);
+		Pdef(super.pdefId,
+			Pbind(
+				\instrument, \kick,
+				\noteOrRest, Pif(seq > 0, 1, Rest())
+			)
+		);
+	}
+
+\end{lstlisting}
 
 \end{document}

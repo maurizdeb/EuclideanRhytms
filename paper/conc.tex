@@ -1,5 +1,21 @@
 \documentclass[main.tex]{subfiles}
 
 \begin{document}
-conclusions....
+\subsection{Further Improvements}
+
+There is always the opportunity to improve and expand the features of a software program, or at least this is true for our software.\\ 
+An idea would be to insert in the rhythm creation chain, showed in the code snippet (numero), more sequence processing algorithm, such as a swing generator or a burst generator, which creates a burst of onsets with controllable density and duration. Those modifications became possible with the introduction of a high clock frequency that went beyond the basic subdivisions of 16th notes.\\ 
+To include the functionality, some modifications on the humanize function are needed. In the actual implementation, the algorithm searches at each index position corresponding to a perfectly timed 16th step and, if there is an onset, this is shifted by a small amount, randomly. If new sequence processing units are added after the humanizer, the new algorithm would not know where to look for an onset. In general, each sequence processing element would need to know exactly where to look for onsets, based on the previous processing step, thus the sequence processing functions could not be interchanged with each other. To solve this problem, and making the implementation of each processing unit more straightforward, the sequence should be not just an array, but an object that saves not only the sequence itself, but the indexes of each onset in a separate array.\\
+Another useful addition would be the export function. It could export the whole audio output, or the individual track for each instruments, or even MIDI tracks, to be used outside Supercollider.
+
+\subsection{Installation}
+
+To honour the object oriented paradigm, a class implementation has been preferred.\\ 
+In order for the program to work correctly, it is not sufficient to run the code block in the main.scd file, since it is necessary to install all the classes that we developed for the application.\\
+To add those classes in SuperCollider, it is necessary to follow these steps:
+\begin{enumerate}
+\item Locate the folder in your file system where SuperCollider looks when compiling user created classes, by using the command ‘Platform.userExtensionDir';
+\item Paste all the .sc file (class files) in that folder
+\item Recompile the class library though the IDE by accessing from the tool bar ‘Language -> Recompile Class Library’
+\end{enumerate}
 \end{document}

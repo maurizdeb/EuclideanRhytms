@@ -1,1 +1,64 @@
 \documentclass[main.tex]{subfiles}
+
+\begin{document}
+Sometimes computer generated rhythms can sound too artificious, due to the fact that the software usually places the onsets of the various sounds perfectly on the grid given by the metre. A human player, on the other hand, has not a perfect timing, but plays with small delays instead of sitting perfectly on the time grid. In order to give the rhythm a more human feel, that we like to hear, there is the need of simulating those small timing imperfections.
+The key idea of this method is to have a high clock resolution, that allows to place the onsets in subdivisions of rhythms that are too short for being taken into account even by a professional drummer, but that still give the impression of a human playing.\\
+In the actual implementation, the clock has been set to a resolution of 1024 cycles for each 4/4 bar. Since the Euclidean rhythm generator is generating patterns in terms of 16th notes, this means that each sequence step is actually 64 clock cycles long. It has been decided to keep the Euclidean pattern generation independent to the actual clock resolution, in order for the source code to be more reusable. This means that every time an Euclidean rhythm is generated, considering that it is expressed as a sequence of onsets or rests in 16th notes, it must be converted to a higher clock resolution, in order to open the possibility for generating small delays and approximate a humanized playing style. The lines that are responsible for this behaviour are depicted below:
+
+\begin{lstlisting}[
+  style      = SuperCollider-IDE,
+  basicstyle = \scttfamily\small,
+  caption    = {Humanized Sequence},
+  label = {lst:humanize},
+  numbers = none
+]
+sequence16 = EuclideanRhythmGen.compute_rhythm(seqHitsKnob.value, seqLengthKnob.value); //in 16th notes
+sequenceStraight = EuclideanRhythmGen.convertToClockResolution(sequence16, 256);
+sequence = RhythmEditor.humanize(sequenceStraight, 256, humanizerKnob.value);
+}
+\end{lstlisting} 
+The first line computes the Euclidean sequence as an array of 0 an 1, representing onsets and rests in 16th notes. The sequence is then converted to the augmented clock resolution, the second parameter to be passed is the resolution of a quarter note in clock cycles. This parameter is passed from the outside so that the actual implementation of the conversion can be reused with other clock resolutions. The third line calls the method which randomly shifts by a small amount the onsets, generating a human feel. It is important to notice that the sequence, once converted to the actual clock resolution, is saved in a variable called sequenceStraight. This passage is crucial, since the humanize method is scheduled to be referenced every 4/4 bar, in order to be realistic and not to become a periodic humanization, which makes no sense at all. The next call to the humanize method, if the Euclidean rhythm parameters are not changed, must work on the previously saved sequenceStraight sequence, and not on the humanized sequence computed at the previous 4/4 bar, otherwise the original rhythm would diverge to something else.\\
+To conclude, the code relative to the humanize function is shown below.
+
+\begin{lstlisting}[
+  style      = SuperCollider-IDE,
+  basicstyle = \scttfamily\small,
+  caption    = {Humanizer Function},
+  label = {lst:humanizeFunction}
+]
+RhythmEditor{
+
+
+	*humanize { | sequence, clockRes, amt |
+
+		var sequenceConverted = Array.fill(sequence.size(), {0});
+	    var step_displacement, displaced_index, step16_index, nSteps, timeNow;
+
+		nSteps = sequence.size()/(clockRes/4); //number of steps in 16th (equal to numHits parameter of the euclidean sequence)
+
+		for(0, (nSteps-1), { arg seqStep;
+
+			step16_index = seqStep*(clockRes/4);                 //position of each 16th step, according to the augmented clock resolution
+
+			step_displacement = round(rrand(-16,16)*amt);        //displacement to be applied to humanize the straight sequence
+			displaced_index = step16_index + step_displacement;  //new index at which we write the displaced (humanized) onset
+
+			if( displaced_index >= 0,
+				{
+					sequenceConverted = sequenceConverted.put( displaced_index, sequence[step16_index]);
+
+				},
+				{
+					sequenceConverted = sequenceConverted.put(step16_index - step_displacement, sequence[step16_index]);
+			});
+
+		});
+
+		^sequenceConverted;
+
+	}
+
+}
+}
+\end{lstlisting} 
+\end{document}
