@@ -13,44 +13,44 @@ the string. Level \begin{math}-2\end{math} implies that a 1 should be inserted i
 array tells us how many level \begin{math}l-1\end{math} strings make up a level \begin{math}l\end{math} string. The “remainder” array is used to tell us if the level \begin{math}l\end{math} string contains a level \begin{math}l-2\end{math} string. We use the remainder array both to keep track of the remainder of the previous division (it will become the denominator of the next
 division), and to determine how many levels deep we need to go. The process stops
 either when the remainder is zero (we have achieved a completely even distribution) or
-when the remainder is one (we have reached the end of the remainder series).\\
+when the remainder is one (we have reached the end of the remainder series) [\autoref{lst:buildString}].\\
 The same process can be applied also for sequences for which the number of 0's is less than number of 1's, only by considering the problem of equally spaced downsets inside onsets.
 
 \begin{lstlisting}[
   style      = SuperCollider-IDE,
   basicstyle = \scttfamily\small,
-  caption    = {Controller of TemplateInstGui},
+  caption    = {Function to build final string of the Euclidean Algorithm},
   label = {lst:buildString},
   firstnumber=62
 ]
-	*build_string { | sequence, level, count, remainder, flag |
+*build_string { | sequence, level, count, remainder, flag |
 
-		if(level == -1 , {
-			sequence = sequence ++ [flag] //add 0 if k <= n/2;
+	if(level == -1 , {
+		sequence = sequence ++ [flag] //add 0 if k <= n/2;
+	}, {
+		if(level == -2 , {
+			sequence = sequence ++ [1-flag];
 		}, {
-			if(level == -2 , {
-				sequence = sequence ++ [1-flag];
-			}, {
-				for(0, count[level]-1, {
-					sequence = this.build_string(sequence, level-1, count, remainder, flag);
-				});
-				if(remainder[level] != 0, {
-					sequence = this.build_string(sequence, level-2, count, remainder, flag);
-				});
+			for(0, count[level]-1, {
+				sequence = this.build_string(sequence, level-1, count, remainder, flag);
+			});
+			if(remainder[level] != 0, {
+				sequence = this.build_string(sequence, level-2, count, remainder, flag);
 			});
 		});
+	});
 
-		^sequence;
-	}
+	^sequence;
 }
+
 \end{lstlisting}
 
 After the computation of the sequence, the application needs a way to continuosly reproduce the sequence, without stopping it if some parameters are changing, but instead uploading itself in real time. In order to this process to be perfeclty computed Supercollider provides an Event Stream 'manager' called \textit{Pdef}. The \textit{Pdef} incapsulates a certain type of \textit{Pbind}, giving it a reference to a global value, defined as 'key', and reproduces it following the global clock definition. By changing some parameters of the \textit{Pdef} or the entire \textit{Pbind}(\autoref{lst:PdefReprod}), this last uploads itself and proceeds with playing. The \textit{Pbind} links the \textit{SynthDef} that the user wants to play to 'tageted' strings that define the pattern. For instance it is possible to use the \textit{Pbind} to play a sequence of notes of a \textit{SynthDef} by defining an array of degrees, or midi notes, defining their duration or their amplitude and other features by simply using 'targeted' strings. From Supercollider library: 
 \begin{lstlisting}[
   style      = SuperCollider-IDE,
   basicstyle = \scttfamily\small,
-  caption    = {Controller of TemplateInstGui},
-  label = {lst:PdefReprod},
+  caption    = {Example of reproduction of a Pbind},
+  label = {lst:PbindReprod},
   numbers=none
 ](
 // a SynthDef
@@ -68,28 +68,27 @@ In our case the \textit{Pbind} contains the sequence that is playing and the \te
 \begin{lstlisting}[
   style      = SuperCollider-IDE,
   basicstyle = \scttfamily\small,
-  caption    = {Controller of TemplateInstGui},
+  caption    = {Example of update for a Pdef},
   label = {lst:PdefReprod},
   numbers=none
 ]
-		super.soundSource = Pdef(super.pdefId,
-			Pbind(
-				\instrument, \kick,
-				\noteOrRest, Pif((Pseq(Array.fill(1024, {0}), inf))> 0, 1, Rest)
-			)
-		);
+super.soundSource = Pdef(super.pdefId,
+	Pbind(
+		\instrument, \kick,
+		\noteOrRest, Pif((Pseq(Array.fill(1024, {0}), inf))> 0, 1, Rest)
+	)
+);
 
-		//...
+//...
 
-		updateSequence{ | sequence |
-		var seq = Pseq(sequence, inf);
-		Pdef(super.pdefId,
-			Pbind(
-				\instrument, \kick,
-				\noteOrRest, Pif(seq > 0, 1, Rest())
-			)
-		);
-	}
+updateSequence{ | sequence |
+var seq = Pseq(sequence, inf);
+Pdef(super.pdefId,
+	Pbind(
+		\instrument, \kick,
+		\noteOrRest, Pif(seq > 0, 1, Rest())
+	)
+);
 
 \end{lstlisting}
 

@@ -1,7 +1,7 @@
 \documentclass[main.tex]{subfiles}
 
 \begin{document}
-The Gui is divided in two main sections:
+The Gui(\yellowref{fig:gui}) is divided in two main sections:
 \begin{itemize}[noitemsep]
 \item The instrument grid
 \item The side bar
@@ -21,6 +21,7 @@ The Side Bar is used to set the global tempo in beat per minutes.\\
 \centering
 \includegraphics[height=10cm, width=15cm, keepaspectratio]{images/gui.png}
 \caption{View of application}
+\label{fig:gui}
 \end{figure}\\
 [2mm]
 The graphical user interface has been developed following two guidelines: to be responsive and dynamic.\\
@@ -31,7 +32,7 @@ Supercollider implements the composite pattern through the View class, in partic
 [2mm]
 View requires two arguments, the container of the element, and a set of parameters describing its bounds in term of pixels.\\
 In the actual implementation each GUI component passes itself to the constructor of the children components, so that they can infer its dimensions and scale their size accordingly.\\
-In the code snippet below, it is shown an example of this recurring pattern: a container, called instGrid, passes itself to its child component TemplateInstGUI. This behaviour is needed, because all the classes in the application that create GUI components, being subclasses of View, need the container View on which they must be attached to. It is also useful for the scaling purposes explained before.\\
+In the code snippet below [\autoref{lst:createGrid}], [\autoref{lst:controlGrid}], it is shown an example of this recurring pattern: a container, called instGrid, passes itself to its child component TemplateInstGUI. This behaviour is needed, because all the classes in the application that create GUI components, being subclasses of View, need the container View on which they must be attached to. It is also useful for the scaling purposes explained before.\\
 [2mm]
 \begin{lstlisting}[
   style      = SuperCollider-IDE,
@@ -76,15 +77,15 @@ To ensure complete scalability of the GUI, in the main.scd script, the sizes of 
 In order to have a dynamic GUI, that allows the user to create, erase and replace instances of the various instruments, it was necessary to define a slot, which could host any different kind of instrument. Consequently, a way to abstract on the way each specific instrument is created, was needed.\\ 
 The proposed solution makes use of the factory method patter, which is a common design pattern in object oriented programming. This enables writing of subclasses to change the way an object is created (to redefine which class to instantiate)\cite{DesignPattern:Gamma}. 
 To implement it, it is necessary to make an abstraction on the way instrument objects that are created (Inst class) and provide a class that is responsible for the creation of such objects (Inst Factory).
-The class diagram below depicts the simplified architecture for instruments creation and behaviour. The Supercollider classes are omitted for the sake of clarity.
+The class diagram in \yellowref{fig:uml} depicts the simplified architecture for instruments creation and behaviour. The Supercollider classes are omitted for the sake of clarity.\\
 \begin{figure}[htbp]
 \centering
-\includegraphics[height=5.4cm, width=12cm, keepaspectratio]{images/factory_pattern_uml.png}
+\includegraphics[height=8.4cm, width=16cm, keepaspectratio]{images/factory_pattern_uml.png}
 \caption{Class diagram of the application}
 \label{fig:uml}
 \end{figure}
-
-To show the advantages of such pattern, it will be shown how TemplateInstGUI is able to create and “host” a generic instrument, by using InstFactory, without worrying about the differences in the creation of each specific instrument. Since Supercollider does not have interfaces, like most object oriented programming languages, the abstraction is done by dividing the common creational step among the various instruments in the method  initializeSequencerGui  in the superclass Inst. This method is then called during the creation of instrument specific GUI elements in the createView method, in each instrument class. Here only the code for the kick instrument is shown, since the other instruments present a very similar code structure.
+\\
+To show the advantages of such pattern, it will be shown how TemplateInstGUI is able to create and “host” a generic instrument, by using InstFactory, without worrying about the differences in the creation of each specific instrument. Since Supercollider does not have interfaces, like most object oriented programming languages, the abstraction is done by dividing the common creational step among the various instruments in the method  initializeSequencerGui  in the superclass Inst. This method is then called during the creation of instrument specific GUI elements in the createView method, in each instrument class. In \autoref{lst:TemplateInstGui} only the code for the kick instrument is shown, since the other instruments present a very similar code structure.
 
 \begin{lstlisting}[
   style      = SuperCollider-IDE,

@@ -1,4 +1,4 @@
-\documentclass[a4paper]{article}
+\documentclass[a4paper, 12pt]{article}
 
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
@@ -16,12 +16,24 @@
 \usepackage[T1]{fontenc}
 \usepackage{xcolor}
 \usepackage{etoolbox}
+\usepackage{fancyhdr} %testatine e piè pagina
+    \fancyhf{}
+    \chead{\footnotesize Euclidean Algorithm for auto-generative patterns in a Supercollider application}
+    \cfoot{\footnotesize de Bari, Albertini  -- {Computer Music}}
+    \rfoot{\thepage}
+    \renewcommand{\headrulewidth}{0pt} %no linea testatine
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
 
 \newcommand{\algorithmautorefname}{Algorithm}
+\definecolor{newyellow}{RGB}{228,153,0}
+\definecolor{newpink}{RGB}{255,20,147}
 
 \renewcommand{\lstlistingname}{Code}% Listing -> Algorithm
 \renewcommand{\lstlistlistingname}{List of \lstlistingname s}
-
+\newcommand\blueref[1]{{\hypersetup{linkbordercolor=blue}\autoref{#1}}}
+\newcommand\yellowref[1]{{\hypersetup{linkbordercolor= newyellow}\autoref{#1}}}
+\newcommand\pinkref[1]{{\hypersetup{linkbordercolor=newpink}\autoref{#1}}}
 
 \newtoggle{InString}{}% Keep track of if we are within a string
 \togglefalse{InString}% Assume not initally in string
@@ -53,32 +65,41 @@
 
 \begin{titlepage}
 	\begin{center}
+	\includegraphics[width=0.2\textwidth]{images/logo.png}\\[0.3cm] 
+	\textsc{\normalsize Politecnico di Milano}\\[4cm]
 	\line(1,0){300}\\
 	[0.25in]
 	\huge{\bfseries Euclidean Algorithm for auto-generative patterns in a Supercollider application}\\
 	[2mm]
 	\line(1,0){200}\\
-	[1.5cm]
+	[1cm]
 	\textsc{\LARGE Project of Computer Music course}\\
-	[10.75cm]
+	[0.1cm]
+	{\large prof. Antonacci Fabio}\\
+	[4cm]
 	\end{center}
 	\begin{flushright}
 	\textsc{\large  Students:\\
-	De Bari Mauro Giuseppe Matr.899371 \\
+	de Bari Mauro Giuseppe Matr.899371 \\
 	Albertini Davide Matr.883347\\
-	October 18, 2018 \\}
+	January 24, 2019 \\}
 	\end{flushright}
 \end{titlepage}
 
-\tableofcontents
-\newpage
-
+\section*{Abstract}
+This paper will describe the implementation of a drum-machine Supercollider app, based on Euclidean Rhythms.\\
+The \blueref{sec:intro} introduces concepts about Euclidean Rhythms, giving some references to already existing electronic modules that adopt them.\\
+The \blueref{sec:algorithm} concerns the historical development of the Euclidean Algorithm, from its first ancient origin to nowday developments for the musical world.\\
+The \blueref{sec:app} focuses about the Supercollider application code, describing the Model-View-Controller pattern inside the application. For the sake of simplicity, it is divided in three subsection.\\
+In the \blueref{sec:concl} issues about the installation and configuration of the app are given. Morover some possible improvements are detailed.
 \section{Introduction}
+\label{sec:intro}
 \subfile{intro}
-
 \section{The algorithm}
+\label{sec:algorithm}
 \subfile{algorithm}
 \section{The application}
+\label{sec:app}
 In the next tre chapter will be explained the structure of the application, with reference to Object Oriented Programming. The first section exposes the passage from the creation of sequence to reproduction of itself, the second one defines its humanization and the third concludes with an overview on the Graphical User Interface.
 \subsection{Sequencing}
 \subfile{sequencing}
@@ -87,6 +108,7 @@ In the next tre chapter will be explained the structure of the application, with
 \subsection{Graphical User Interface}
 \subfile{devel}
 \section{Conclusions}
+\label{sec:concl}
 \subfile{conc}
 %\nocite{*}
 \subfile{bib}
