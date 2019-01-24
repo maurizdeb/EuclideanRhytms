@@ -1,70 +1,61 @@
 \documentclass[main.tex]{subfiles}
 
 \begin{document}
-The first aim of the application is to play the sequences of onsets and downsets meanwhile the user is changing the values of the Supercollider application.\\
-This is possible reproducing these three steps:
-\begin{itemize}[noitemsep]
-\item Read new values related to length and onset of sequence
-\item Calculate new sequence
-\item Reproduce the calculated sequence for the sound selected by user
-\end{itemize}
-In order to following the principles of object oriented programming, it has been developed a class that contains the Euclidean Algorithm, necessary to the calculation of sequence. It is an adapted version of the algorithm discussed in the previous section and in \cite{Bjorklund:2003:euclidean:rhythm}. The class contain the methods related to the building of string based on the remainder of division between length and steps. The first method calculates the array of remainders and counts related to each \textit{level}. Considering that the number of downset (or 0's) is greater than the number of onsets (or 1's) it can be seen that the level \begin{math}-1\end{math} implies that a 0 should be inserted in
-the string. Level \begin{math}-2\end{math} implies that a 1 should be inserted in the string. The “count”
-array tells us how many level \begin{math}l-1\end{math} strings make up a level \begin{math}l\end{math} string. The “remainder” array is used to tell us if the level \begin{math}l\end{math} string contains a level \begin{math}l-2\end{math} string. We use the remainder array both to keep track of the remainder of the previous division (it will become the denominator of the next
-division), and to determine how many levels deep we need to go. The process stops
-either when the remainder is zero (we have achieved a completely even distribution) or
-when the remainder is one (we have reached the end of the remainder series) [\autoref{lst:buildString}].\\
-The same process can be applied also for sequences for which the number of 0's is less than number of 1's, only by considering the problem of equally spaced downsets inside onsets.
-
-\begin{lstlisting}[
-  style      = SuperCollider-IDE,
-  basicstyle = \scttfamily\small,
-  caption    = {Function to build final string of the Euclidean Algorithm},
-  label = {lst:buildString},
-  firstnumber=62
-]
-*build_string { | sequence, level, count, remainder, flag |
-
-	if(level == -1 , {
-		sequence = sequence ++ [flag] //add 0 if k <= n/2;
-	}, {
-		if(level == -2 , {
-			sequence = sequence ++ [1-flag];
-		}, {
-			for(0, count[level]-1, {
-				sequence = this.build_string(sequence, level-1, count, remainder, flag);
-			});
-			if(remainder[level] != 0, {
-				sequence = this.build_string(sequence, level-2, count, remainder, flag);
-			});
-		});
-	});
-
-	^sequence;
-}
-
-\end{lstlisting}
-
-After the computation of the sequence, the application needs a way to continuosly reproduce the sequence, without stopping it if some parameters are changing, but instead uploading itself in real time. In order to this process to be perfeclty computed Supercollider provides an Event Stream 'manager' called \textit{Pdef}. The \textit{Pdef} incapsulates a certain type of \textit{Pbind}, giving it a reference to a global value, defined as 'key', and reproduces it following the global clock definition. By changing some parameters of the \textit{Pdef} or the entire \textit{Pbind}(\autoref{lst:PdefReprod}), this last uploads itself and proceeds with playing. The \textit{Pbind} links the \textit{SynthDef} that the user wants to play to 'tageted' strings that define the pattern. For instance it is possible to use the \textit{Pbind} to play a sequence of notes of a \textit{SynthDef} by defining an array of degrees, or midi notes, defining their duration or their amplitude and other features by simply using 'targeted' strings. From Supercollider library: 
+The first thing that the developed application grants to the user is to chose what kind of drum-piece it wants to play. These last are defined following the sintax of \textit{SynthDef} UGen of Supercollider. It is possible to chose among two kicks, two hi-hats, two snares, a cowbell, a marimba and a kalimba. Morover a sampler can be selected. Some sounds, as one of two snares, a kick and an hi-hat, are inspired by the Roland Tr-808 drum machine. An example of a \textit{kick} is depict in \autoref{lst:kick808}.\\
 \begin{lstlisting}[
   style      = SuperCollider-IDE,
   basicstyle = \scttfamily\small,
   caption    = {Example of reproduction of a Pbind},
-  label = {lst:PbindReprod},
+  label = {lst:kick808},
   numbers=none
 ](
-// a SynthDef
-SynthDef(\test, { | out, freq = 440, amp = 0.1, nharms = 10, pan = 0, gate = 1 |
-    var audio = Blip.ar(freq, nharms, amp);
-    var env = Linen.kr(gate, doneAction: Done.freeSelf);
-    OffsetOut.ar(out, Pan2.ar(audio, pan, env) );
-}).add;
-)
-
-Pbind(\instrument, \test, \freq, Prand([1, 1.2, 2, 2.5, 3, 4], inf) * 200, \dur, 0.1).play;
+SynthDef(\kick_808, {arg out = 0, freq1 = 240, freq2 = 60, amp = 0.5, ringTime = 10, rel = 1, dist = 0.5, pan = 0, tone = 1, decay = 1, mute = 1;
+		var snd, env;
+		snd = Ringz.ar(
+			in: Impulse.ar(0), // single impulse
+			freq: XLine.ar(freq1*tone, freq2*tone, 0.1),
+			decaytime: ringTime);
+		env = EnvGen.ar(Env.perc(0.001, rel*decay, amp), doneAction: 2);
+		snd = (1.0 - dist) * snd + (dist * (snd.distort));
+		snd = snd * env;
+		Out.ar(0, Pan2.ar(snd, pan, amp*mute));
+	}).add;
+}
 \end{lstlisting}
-In our case the \textit{Pbind} contains the sequence that is playing and the \textit{Pdef} globalizes it. 
+Subsequently the user has to define the euclidean parameters necessary to program the sequence of the drum-piece. With respect to this, three parameters are defined: the \textit{length} of the playing sequence (the default numer is 16), the number of the equally divided onsets and a value that describes the \textit{offset} of the sequence. The first two numbers characterize the input-values of the Bjorklund's algorithm, as already discussed in \blueref{sec:algorithm}. The \textit{offset} value is necessary in order to shift the sequence. By default it is reproduced by putting the first onset on the first time-instant (for instance for a 16-length sequence with four onset, the reproduced sequence is \begin{math}[1000100010001000]\end{math}). If the user wants to play a sequence with already decided length and onsets and he/she wants to shift the first onset on the third time instant, he/she will have to define an offset of \begin{math}3\end{math}. For example, if the offset is \begin{math}3\end{math} for the pattern \begin{math}[1000100010001000]\end{math}, the final reproduced sequence will become \begin{math}[0001000100010001]\end{math}.\\
+In the application, a class called \textit{EuclideanRhythmGen} is completely dedicated for the creation of sequences. It contains two methods that implement the Bjorklund's Euclidean Algorithm. It is important to summarize the elements that compose it. The \textit{level} defines the number of zeros or ones that have to be attached to the string. In case that the number of onset is less than the half of the sequence length, level \begin{math}-2\end{math} implies that a 1 should be inserted in the string, and vice-versa for level \begin{math}-1\end{math}. The \textit{count} array tells us how many level \begin{math}L-1\end{math} strings make up a level \textit{L}. The \textit{reminder} array is used to tell us if the level \textit{L} string contains a level \begin{math}L-2\end{math}. For instance, for a sequence of length 13 and 5 hits, we will calculate the level 0 (\begin{math}[01]\end{math}) from the divison \begin{math}8/5\end{math}, where \begin{math}8=length-5\end{math}. We will append a level \begin{math}-2\end{math} to a level \begin{math}-1\end{math}. Therefore, count[1] is one, since there is only a level-zero string in the level-one string. On the other hand, remainder[0] will be equal to 5 (the original dividend) and reminder[1] will be equal to the rest of \begin{math}8/5\end{math}. This process stops either when the reminder is 0 (we have achieved a completely even distribution) or when the remainder is one (we have reached the end of the remainder series). For the sake of simplicity, the steps of this process are defined in \autoref{lst:computeRhythm}.\\
+\begin{lstlisting}[
+  style      = SuperCollider-IDE,
+  basicstyle = \scttfamily\small,
+  caption    = {Function to build final string of the Euclidean Algorithm},
+  label = {lst:computeRhythm},
+  numbers=none
+]
+remainder = remainder.insert(0,k);
+count = count.insert(level,(divisor / remainder[level]).floor);
+remainder =  remainder.insert(level+1, divisor % remainder[level]); //% corresponds to mod(divisor, reminder[level])
+divisor = remainder[level];
+level = level +1;
 
+while( {remainder[level] > 1}, {
+	count = count.insert(level,(divisor / remainder[level]).floor);
+	remainder =  remainder.insert(level+1, divisor % remainder[level]); //% corresponds to mod(divisor, reminder[level])
+	divisor = remainder[level];
+	level = level +1;
+});
+
+//remainder.postln;
+//count.postln;
+
+count = count.insert(level, divisor);
+
+//count.postln;
+sequence = this.build_string(sequence, level, count, remainder, flag);
+//sequence.postln;
+
+\end{lstlisting}
+
+Last but not least, the application needs to reproduce the sequence, without stopping it when the user wants to change the parameter of length, number of onsets and offset. With respect to this, Supercollider provides an Event Stream manager called \textit{Pdef}. The \textit{Pdef} incapsulates a certain type of \textit{Pbind} giving it a reference to a global value, defined as "key", and reproduces it following the global clock definition. The \textit{Pbind} links the \textit{SynthDef} that the user wants to play to 'targeted' strings that defines the pattern. Moreover it is possible to adopt the \textit{Pbind} to change some other parameters concerning to the \textit{SynthDef}: the amplitude, the duration, the degree, the panning. In \autoref{lst:PdefReprod} it is simply shown how the \textit{Pbind} is created and how it is updated with the new sequence programmed by the Euclidean Algorithm.\\
 \begin{lstlisting}[
   style      = SuperCollider-IDE,
   basicstyle = \scttfamily\small,
@@ -91,5 +82,122 @@ Pdef(super.pdefId,
 );
 
 \end{lstlisting}
-
 \end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% The first aim of the application is to play the sequences of onsets and downsets meanwhile the user is changing the values of the Supercollider application.\\
+% This is possible reproducing these three steps:
+% \begin{itemize}[noitemsep]
+% \item Read new values related to length and onset of sequence
+% \item Calculate new sequence
+% \item Reproduce the calculated sequence for the sound selected by user
+% \end{itemize}
+% In order to following the principles of object oriented programming, it has been developed a class that contains the Euclidean Algorithm, necessary to the calculation of sequence. It is an adapted version of the algorithm discussed in the previous section and in \cite{Bjorklund:2003:euclidean:rhythm}. The class contain the methods related to the building of string based on the remainder of division between length and steps. The first method calculates the array of remainders and counts related to each \textit{level}. Considering that the number of downset (or 0's) is greater than the number of onsets (or 1's) it can be seen that the level \begin{math}-1\end{math} implies that a 0 should be inserted in
+% the string. Level \begin{math}-2\end{math} implies that a 1 should be inserted in the string. The “count”
+% array tells us how many level \begin{math}l-1\end{math} strings make up a level \begin{math}l\end{math} string. The “remainder” array is used to tell us if the level \begin{math}l\end{math} string contains a level \begin{math}l-2\end{math} string. We use the remainder array both to keep track of the remainder of the previous division (it will become the denominator of the next
+% division), and to determine how many levels deep we need to go. The process stops
+% either when the remainder is zero (we have achieved a completely even distribution) or
+% when the remainder is one (we have reached the end of the remainder series) [\autoref{lst:buildString}].\\
+% The same process can be applied also for sequences for which the number of 0's is less than number of 1's, only by considering the problem of equally spaced downsets inside onsets.
+
+% \begin{lstlisting}[
+%   style      = SuperCollider-IDE,
+%   basicstyle = \scttfamily\small,
+%   caption    = {Function to build final string of the Euclidean Algorithm},
+%   label = {lst:buildString},
+%   firstnumber=62
+% ]
+% *build_string { | sequence, level, count, remainder, flag |
+
+% 	if(level == -1 , {
+% 		sequence = sequence ++ [flag] //add 0 if k <= n/2;
+% 	}, {
+% 		if(level == -2 , {
+% 			sequence = sequence ++ [1-flag];
+% 		}, {
+% 			for(0, count[level]-1, {
+% 				sequence = this.build_string(sequence, level-1, count, remainder, flag);
+% 			});
+% 			if(remainder[level] != 0, {
+% 				sequence = this.build_string(sequence, level-2, count, remainder, flag);
+% 			});
+% 		});
+% 	});
+
+% 	^sequence;
+% }
+
+% \end{lstlisting}
+
+% After the computation of the sequence, the application needs a way to continuosly reproduce the sequence, without stopping it if some parameters are changing, but instead uploading itself in real time. In order to this process to be perfeclty computed Supercollider provides an Event Stream 'manager' called \textit{Pdef}. The \textit{Pdef} incapsulates a certain type of \textit{Pbind}, giving it a reference to a global value, defined as 'key', and reproduces it following the global clock definition. By changing some parameters of the \textit{Pdef} or the entire \textit{Pbind}(\autoref{lst:PdefReprod}), this last uploads itself and proceeds with playing. The \textit{Pbind} links the \textit{SynthDef} that the user wants to play to 'tageted' strings that define the pattern. For instance it is possible to use the \textit{Pbind} to play a sequence of notes of a \textit{SynthDef} by defining an array of degrees, or midi notes, defining their duration or their amplitude and other features by simply using 'targeted' strings. From Supercollider library: 
+% \begin{lstlisting}[
+%   style      = SuperCollider-IDE,
+%   basicstyle = \scttfamily\small,
+%   caption    = {Example of reproduction of a Pbind},
+%   label = {lst:PbindReprod},
+%   numbers=none
+% ](
+% // a SynthDef
+% SynthDef(\test, { | out, freq = 440, amp = 0.1, nharms = 10, pan = 0, gate = 1 |
+%     var audio = Blip.ar(freq, nharms, amp);
+%     var env = Linen.kr(gate, doneAction: Done.freeSelf);
+%     OffsetOut.ar(out, Pan2.ar(audio, pan, env) );
+% }).add;
+% )
+
+% Pbind(\instrument, \test, \freq, Prand([1, 1.2, 2, 2.5, 3, 4], inf) * 200, \dur, 0.1).play;
+% \end{lstlisting}
+% In our case the \textit{Pbind} contains the sequence that is playing and the \textit{Pdef} globalizes it. 
+
+% \begin{lstlisting}[
+%   style      = SuperCollider-IDE,
+%   basicstyle = \scttfamily\small,
+%   caption    = {Example of update for a Pdef},
+%   label = {lst:PdefReprod},
+%   numbers=none
+% ]
+% super.soundSource = Pdef(super.pdefId,
+% 	Pbind(
+% 		\instrument, \kick,
+% 		\noteOrRest, Pif((Pseq(Array.fill(1024, {0}), inf))> 0, 1, Rest)
+% 	)
+% );
+
+% //...
+
+% updateSequence{ | sequence |
+% var seq = Pseq(sequence, inf);
+% Pdef(super.pdefId,
+% 	Pbind(
+% 		\instrument, \kick,
+% 		\noteOrRest, Pif(seq > 0, 1, Rest())
+% 	)
+% );
+
+% \end{lstlisting}
+
+% \end{document}

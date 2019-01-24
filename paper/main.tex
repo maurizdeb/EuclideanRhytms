@@ -17,13 +17,14 @@
 \usepackage{xcolor}
 \usepackage{etoolbox}
 \usepackage{fancyhdr} %testatine e piè pagina
-    \fancyhf{}
-    \chead{\footnotesize Euclidean Algorithm for auto-generative patterns in a Supercollider application}
-    \cfoot{\footnotesize de Bari, Albertini  -- {Computer Music}}
-    \rfoot{\thepage}
-    \renewcommand{\headrulewidth}{0pt} %no linea testatine
-\setlength{\headheight}{15pt}
 \pagestyle{fancy}
+    \fancyhf{}
+    \chead{Euclidean Algorithm for auto-generative patterns in a Supercollider application}
+    \lfoot{de Bari, Albertini}
+    \rfoot{{\textsc{Computer Music}}}
+    \cfoot{\thepage}
+    \renewcommand{\headrulewidth}{0.7pt}
+\renewcommand{\footrulewidth}{0.7pt}
 
 \newcommand{\algorithmautorefname}{Algorithm}
 \definecolor{newyellow}{RGB}{228,153,0}
@@ -88,10 +89,10 @@
 
 \section*{Abstract}
 This paper will describe the implementation of a drum-machine Supercollider app, based on Euclidean Rhythms.\\
-The \blueref{sec:intro} introduces concepts about Euclidean Rhythms, giving some references to already existing electronic modules that adopt them.\\
+The \blueref{sec:intro} introduces general concepts about Euclidean Rhythms.\\
 The \blueref{sec:algorithm} concerns the historical development of the Euclidean Algorithm, from its first ancient origin to nowday developments for the musical world.\\
-The \blueref{sec:app} focuses about the Supercollider application code, describing the Model-View-Controller pattern inside the application. For the sake of simplicity, it is divided in three subsection.\\
-In the \blueref{sec:concl} issues about the installation and configuration of the app are given. Morover some possible improvements are detailed.
+The \blueref{sec:app} focuses about the Supercollider application code, describing the code and the algorithms inside the application. For the sake of simplicity, it is divided in three subsection. The first is about the sequencing of instruments, the second is about the humanization of played sequences and the third describes the Graphical User Interface.\\
+In the \blueref{sec:concl} informations about the installation and configuration of the app are given. Morover some possible improvements are detailed.
 \section{Introduction}
 \label{sec:intro}
 \subfile{intro}
@@ -100,7 +101,7 @@ In the \blueref{sec:concl} issues about the installation and configuration of th
 \subfile{algorithm}
 \section{The application}
 \label{sec:app}
-In the next tre chapter will be explained the structure of the application, with reference to Object Oriented Programming. The first section exposes the passage from the creation of sequence to reproduction of itself, the second one defines its humanization and the third concludes with an overview on the Graphical User Interface.
+In the next three chapter the structure of the application will be explained, with references to Object Oriented Programming. The first section exposes the passage from the creation of sequence to reproduction of itself, the second one defines its humanization and the third concludes with an overview on the Graphical User Interface.
 \subsection{Sequencing}
 \subfile{sequencing}
 \subsection{Humanizer}
