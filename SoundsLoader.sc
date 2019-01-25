@@ -97,11 +97,12 @@ SoundsLoader {
 		//SAMPLER
 		SynthDef(\sampler, { arg buf, rate=1, amp=0.5, t_gate=0, pan=0.0, mute=1;
 
-			var sample;
+			var sample, mult;
 
+			mult = 0.3;
 			sample = PlayBuf.ar(2, buf, rate, t_gate);
 
-			Out.ar(0, Pan2.ar(sample, pan, amp*mute));
+			Out.ar(0, Pan2.ar(sample, pan, mult*amp*mute));
 
 		}).add;
 

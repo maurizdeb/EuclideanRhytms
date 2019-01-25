@@ -12,8 +12,8 @@
 	screen_size = Window.screenBounds;
 
 	//horizontal and vertical percentage of the screen to be occupied by the window
-	prop_width = 0.80;
-	prop_height = 0.88;
+	prop_width = 0.70;
+	prop_height = 0.75;
 
 	w_width = (prop_width * screen_size.width).round;
 	w_height = (prop_height * screen_size.height).round;
@@ -39,7 +39,7 @@
 	clockRes = 256; //clock in 1024th
 
 	g = ControlSpec.new(40, 240, \linear, 1);
-	tempoKnob = EZKnob(w, Rect((0.85*w_width).round, (0.01*w_height).round, (prop_height*w_height*0.105).round, (prop_height*0.105*w_height).round),"bpm", g, initVal:120);
+	tempoKnob = EZKnob(w, Rect((0.85*w_width).round, (0.01*w_height).round, (prop_height*w_height*0.125).round, (prop_height*0.125*w_height).round),"bpm", g, initVal:120);
 
 	tempoKnob.action_({
 		var tmp = tempoKnob.value;
@@ -51,7 +51,7 @@
 	reverb = Synth.tail(s,\reverb);
 
 	g = ControlSpec.new(0, 1, \lin);
-	drywetKnob = EZKnob(w, Rect((0.81*w_width).round, (0.15*w_height).round, (prop_height*w_height*0.105).round, (prop_height*0.105*w_height).round),"reverb", g, initVal:0);
+	drywetKnob = EZKnob(w, Rect((0.81*w_width).round, (0.15*w_height).round, (prop_height*w_height*0.125).round, (prop_height*0.125*w_height).round),"reverb", g, initVal:0);
 
 	drywetKnob.action_({
 		var drywet = drywetKnob.value;
@@ -59,7 +59,7 @@
 	});
 
 	g = ControlSpec.new(0, 0.8, \lin);
-	roomKnob = EZKnob(w, Rect((0.90*w_width).round, (0.15*w_height).round, (prop_height*w_height*0.105).round, (prop_height*0.105*w_height).round),"room-size", g, initVal:0.5);
+	roomKnob = EZKnob(w, Rect((0.90*w_width).round, (0.15*w_height).round, (prop_height*w_height*0.125).round, (prop_height*0.125*w_height).round),"room-size", g, initVal:0.5);
 
 	roomKnob.action_({
 		var room = roomKnob.value;

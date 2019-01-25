@@ -147,8 +147,8 @@ Inst {
 
 		/*--------LEVEL CONTROL-----*/
 
-		g = ControlSpec.new(0, 1.5, \lin, 0.1);
-		levelKnob = EZKnob(instView,Rect(instView_width*4/9, instView_width*7/8, dim_knob_euclidean, dim_knob_euclidean),"level",g,initVal:0.5);
+		g = ControlSpec.new(0, 1.5, \lin, 0.01);
+		levelKnob = EZKnob(instView,Rect(instView_width*4/9, instView_width*7/8, dim_knob_euclidean, dim_knob_euclidean),"level",g,initVal:0.50);
 
 		levelKnob.action_({
 			soundSource.set(\amp, levelKnob.value);
@@ -416,7 +416,7 @@ HiHatInst : Inst {
 
 		/*---------------------SOUND PARAMETERS-----------------------------*/
 		//DECAY
-		hi_hatDecayKnob = super.paramSet.addParameter(name:"decay", minVal:0.05, maxVal:1, initVal:0.1);
+		hi_hatDecayKnob = super.paramSet.addParameter(name:"decay", minVal:0.05, maxVal:2, initVal:0.1);
 		hi_hatDecayKnob.action_({
 			super.soundSource.set(\decay,hi_hatDecayKnob.value);
 		});
@@ -465,7 +465,8 @@ SamplerInst : Inst {
 		super.instLabel.string = "sampler";
 
 		/* ---- btnLoad -----*/
-		samplerLoadBtn = Button(instView, Rect(instView.bounds.left + (instView.bounds.width/2), instView.bounds.top + 150, templateView.bounds.width/5, templateView.bounds.width/20));
+		samplerLoadBtn = Button(instView, Rect(instView.bounds.left+(instView.bounds.width/2), instView.bounds.top+(instView.bounds.height/3),
+			                                   templateView.bounds.width/5, templateView.bounds.width/20));
 		samplerLoadBtn.string = "load sample";
 
 		samplerLoadBtn.action_({ arg butt;
