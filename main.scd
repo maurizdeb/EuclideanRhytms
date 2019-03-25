@@ -108,3 +108,5 @@
 s.plotTree;
 Platform.userExtensionDir;
 
+EuclideanRhythmGen.compute_rhythm(5,13);
+
